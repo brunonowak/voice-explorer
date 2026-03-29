@@ -322,13 +322,13 @@ body {
 .expand-btn { font-size: 0.7rem; }
 
 /* Winner tree under coach card */
-.coach-card.expanded { flex-wrap: wrap; }
+.coach-card.expanded { flex-wrap: wrap; align-items: stretch; grid-column: 1 / -1; overflow: visible; }
 .winner-tree {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.35rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
   border-top: 1px solid var(--border);
 }
 .winner-card {
