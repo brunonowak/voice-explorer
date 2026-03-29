@@ -4,14 +4,17 @@ import { getCurrentUser } from './spotify/api';
 import Login from './components/Login';
 import Header from './components/Header';
 import CoachExplorer from './components/CoachExplorer';
+import CoachVerifier from './components/CoachVerifier';
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+const isDevMode = new URLSearchParams(window.location.search).has('dev');
 
 function App() {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showVerifier, setShowVerifier] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -103,8 +106,12 @@ function App() {
 
   return (
     <div className="app">
-      <Header user={user} onLogout={handleLogout} />
-      <CoachExplorer token={token} userId={user?.id} />
+      <Header user={user} onLogout={handleLogout} isDevMode={isDevMode} onToggleVerifier={() => setShowVerifier(v => !v)} showVerifier={showVerifier} />
+      {showVerifier && isDevMode ? (
+        <CoachVerifier token={token} onClose={() => setShowVerifier(false)} />
+      ) : (
+        <CoachExplorer token={token} userId={user?.id} />
+      )}
     </div>
   );
 }
