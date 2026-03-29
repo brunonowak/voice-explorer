@@ -3325,7 +3325,7 @@
     ]
   },
   "spotifyOverrides": {
-    "Al Bano": "2gpELJDuhOQi1DPcI0VFvw",
+    "Al Bano": "1c0wBsDBu0NqpvxBqjYjZS",
     "Andra": "72FGvJgYbs0NBeJqECy6cF",
     "Axel": "32x1uogH2zajP85pzZAtuE",
     "Belinda": "5LeiVcEnsZcwc133TUhJNW",
@@ -3415,6 +3415,10 @@
     "Denis Roabeș": {
       "type": "band_member",
       "displayName": "The Motans"
+    },
+    "Al Bano": {
+      "type": "band_member",
+      "displayName": "Al Bano & Romina Power"
     }
   }
 }
