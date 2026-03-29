@@ -31,7 +31,7 @@ function saveResults(results) {
 
 function getStatus(result) {
   if (!result) return 'pending';
-  if (result.approved) return 'ok';
+  if (result.approved || result.hasOverride) return 'ok';
   if (result.noMatch) return 'missing';
   if (result.nameMismatch || result.noImages || result.lowFollowers) return 'warning';
   return 'ok';
