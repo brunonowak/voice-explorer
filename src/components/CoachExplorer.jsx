@@ -48,25 +48,30 @@ function CoachExplorer({ token, userId }) {
       .sort((a, b) => b.seasons.length - a.seasons.length);
   }, [filteredSeasons]);
 
-  // Fetch artist photos for visible coaches
+  // Fetch artist photos for visible coaches (parallel, batched)
   const fetchPhotos = useCallback(async () => {
     if (!token) return;
-    const names = allCoaches.map(c => c.name).filter(n => !artistCache.has(n));
-    for (const name of names.slice(0, 20)) { // batch limit to avoid rate limits
-      try {
-        const artists = await searchArtist(token, name);
-        const img = artists[0]?.images?.[2]?.url || artists[0]?.images?.[0]?.url || null;
-        artistCache.set(name, img);
-      } catch {
-        artistCache.set(name, null);
-      }
+    const uncached = allCoaches.map(c => c.name).filter(n => !artistCache.has(n));
+
+    // Fetch in parallel batches of 5 to avoid rate limits
+    for (let i = 0; i < uncached.length; i += 5) {
+      const batch = uncached.slice(i, i + 5);
+      await Promise.all(batch.map(async (name) => {
+        try {
+          const artists = await searchArtist(token, name);
+          const img = artists[0]?.images?.[1]?.url || artists[0]?.images?.[0]?.url || null;
+          artistCache.set(name, img);
+        } catch {
+          artistCache.set(name, null);
+        }
+      }));
+      // Update photos progressively after each batch
+      const photos = {};
+      allCoaches.forEach(c => {
+        if (artistCache.has(c.name)) photos[c.name] = artistCache.get(c.name);
+      });
+      setArtistPhotos({ ...photos });
     }
-    // Build photo map from cache for current coaches
-    const photos = {};
-    allCoaches.forEach(c => {
-      if (artistCache.has(c.name)) photos[c.name] = artistCache.get(c.name);
-    });
-    setArtistPhotos(photos);
   }, [token, allCoaches]);
 
   useEffect(() => { fetchPhotos(); }, [fetchPhotos]);
