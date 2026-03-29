@@ -1179,3 +1179,24 @@ tr.vr-missing td { background: rgba(231, 76, 60, 0.04); }
   color: var(--spotify-green);
   font-weight: 400;
 }
+
+/* Season status badges */
+.vc-latest {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.vc-outdated {
+  color: #f39c12;
+  font-weight: 600;
+}
+
+.vc-badge {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.verifier-country-card.needs-update {
+  border-color: rgba(243, 156, 18, 0.5);
+  background: rgba(243, 156, 18, 0.05);
+}

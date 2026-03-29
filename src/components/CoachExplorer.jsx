@@ -8,7 +8,7 @@ import { searchArtist } from '../spotify/api';
 
 const jsonOverrides = allData.spotifyOverrides || {};
 const jsonCoachMeta = allData.coachMeta || {};
-const countryCodes = Object.keys(allData).filter(k => k !== 'spotifyOverrides' && k !== 'coachMeta');
+const countryCodes = Object.keys(allData).filter(k => !['spotifyOverrides', 'coachMeta', 'seasonStatus'].includes(k));
 
 // Merge JSON coachMeta with localStorage overrides
 function getMergedCoachMeta() {

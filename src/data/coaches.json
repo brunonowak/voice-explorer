@@ -3479,5 +3479,182 @@
       "type": "band_member",
       "displayName": "Al Bano & Romina Power"
     }
+  },
+  "seasonStatus": {
+    "US": {
+      "status": "active",
+      "latestKnown": "S27 (2025)",
+      "note": "NBC, ongoing"
+    },
+    "UK": {
+      "status": "active",
+      "latestKnown": "S14 (2026)",
+      "note": "ITV1"
+    },
+    "AU": {
+      "status": "active",
+      "latestKnown": "S13 (2024)",
+      "note": "Channel 7"
+    },
+    "NL": {
+      "status": "active",
+      "latestKnown": "S14 (2025)",
+      "note": "RTL 4"
+    },
+    "DE": {
+      "status": "active",
+      "latestKnown": "S14 (2024)",
+      "note": "SAT.1"
+    },
+    "FR": {
+      "status": "active",
+      "latestKnown": "S13 (2024)",
+      "note": "TF1"
+    },
+    "BR": {
+      "status": "hiatus",
+      "latestKnown": "S12 (2023)",
+      "note": "Globo, uncertain future"
+    },
+    "ES": {
+      "status": "active",
+      "latestKnown": "S8 (2024)",
+      "note": "Antena 3"
+    },
+    "IT": {
+      "status": "active",
+      "latestKnown": "S4 (2024)",
+      "note": "RAI 2"
+    },
+    "CO": {
+      "status": "active",
+      "latestKnown": "S4 (2024)",
+      "note": "Caracol TV"
+    },
+    "PH": {
+      "status": "active",
+      "latestKnown": "S3 (2024)",
+      "note": "ABS-CBN"
+    },
+    "ZA": {
+      "status": "hiatus",
+      "latestKnown": "S4 (2019)",
+      "note": "M-Net, no recent seasons"
+    },
+    "NG": {
+      "status": "active",
+      "latestKnown": "S4 (2024)",
+      "note": "Africa Magic"
+    },
+    "PT": {
+      "status": "active",
+      "latestKnown": "S12 (2024)",
+      "note": "RTP1"
+    },
+    "RU": {
+      "status": "active",
+      "latestKnown": "S13 (2024)",
+      "note": "Channel One"
+    },
+    "UA": {
+      "status": "active",
+      "latestKnown": "S14 (2024)",
+      "note": "1+1"
+    },
+    "MX": {
+      "status": "hiatus",
+      "latestKnown": "S4 (2020)",
+      "note": "TV Azteca, paused"
+    },
+    "GR": {
+      "status": "active",
+      "latestKnown": "S7 (2024)",
+      "note": "SKAI TV"
+    },
+    "TR": {
+      "status": "active",
+      "latestKnown": "S9 (2024)",
+      "note": "TV8"
+    },
+    "IE": {
+      "status": "hiatus",
+      "latestKnown": "S5 (2017)",
+      "note": "RTÉ, ended"
+    },
+    "BE": {
+      "status": "active",
+      "latestKnown": "S12 (2025)",
+      "note": "VTM"
+    },
+    "ARAB": {
+      "status": "active",
+      "latestKnown": "S6 (2024)",
+      "note": "MBC"
+    },
+    "ID": {
+      "status": "active",
+      "latestKnown": "S5 (2024)",
+      "note": "GTV"
+    },
+    "PL": {
+      "status": "active",
+      "latestKnown": "S16 (2025)",
+      "note": "TVP2"
+    },
+    "RO": {
+      "status": "active",
+      "latestKnown": "S11 (2024)",
+      "note": "PRO TV"
+    },
+    "SE": {
+      "status": "active",
+      "latestKnown": "S10 (2025)",
+      "note": "TV4"
+    },
+    "AR": {
+      "status": "hiatus",
+      "latestKnown": "S3 (2024)",
+      "note": "Telefe"
+    },
+    "IN": {
+      "status": "hiatus",
+      "latestKnown": "S3 (2019)",
+      "note": "&TV, ended"
+    },
+    "DK": {
+      "status": "hiatus",
+      "latestKnown": "S2 (2012)",
+      "note": "TV 2, ended (Voice Junior continues)"
+    },
+    "FI": {
+      "status": "active",
+      "latestKnown": "S11 (2025)",
+      "note": "Nelonen"
+    },
+    "NO": {
+      "status": "active",
+      "latestKnown": "S10 (2025)",
+      "note": "TV 2"
+    },
+    "VN": {
+      "status": "active",
+      "latestKnown": "S10 (2024)",
+      "note": "VTV3"
+    },
+    "TH": {
+      "status": "active",
+      "latestKnown": "S8 (2024)",
+      "note": "PPTV HD 36"
+    },
+    "KR": {
+      "status": "hiatus",
+      "latestKnown": "S4 (2020)",
+      "note": "Mnet, paused"
+    },
+    "CA": {
+      "status": "active",
+      "latestKnown": "S5 (2025)",
+      "note": "TVA (La Voix)"
+    }
   }
 }

@@ -5,7 +5,8 @@ import { searchArtist } from '../spotify/api';
 
 const jsonOverrides = allData.spotifyOverrides || {};
 const jsonCoachMeta = allData.coachMeta || {};
-const countryCodes = Object.keys(allData).filter(k => k !== 'spotifyOverrides' && k !== 'coachMeta');
+const seasonStatus = allData.seasonStatus || {};
+const countryCodes = Object.keys(allData).filter(k => !['spotifyOverrides', 'coachMeta', 'seasonStatus'].includes(k));
 
 function getMergedCoachMeta() {
   let localMeta = {};
@@ -116,6 +117,7 @@ function CoachVerifier({ token, onClose }) {
   const countryStats = useMemo(() => {
     return countryCodes.map(code => {
       const c = allData[code];
+      const ss = seasonStatus[code];
       const coaches = new Set();
       c.seasons.forEach(s => s.coaches.forEach(n => coaches.add(n)));
       const lastYear = Math.max(...c.seasons.map(s => s.year));
@@ -128,8 +130,16 @@ function CoachVerifier({ token, onClose }) {
         coachCount: coaches.size,
         lastYear,
         stale: lastYear < 2024,
+        showStatus: ss?.status || 'unknown',
+        latestKnown: ss?.latestKnown || '',
+        statusNote: ss?.note || '',
+        needsUpdate: ss && ss.status === 'active' && lastYear < 2024,
       };
-    }).sort((a, b) => b.lastYear - a.lastYear);
+    }).sort((a, b) => {
+      // Sort: needs update first, then by last year desc
+      if (a.needsUpdate !== b.needsUpdate) return a.needsUpdate ? -1 : 1;
+      return b.lastYear - a.lastYear;
+    });
   }, []);
 
   const runVerification = async () => {
@@ -272,22 +282,36 @@ function CoachVerifier({ token, onClose }) {
 
       {/* Country overview */}
       <details className="verifier-countries-section">
-        <summary>📋 Country Overview ({countryCodes.length} countries)</summary>
+        <summary>📋 Country Overview ({countryCodes.length} countries — {countryStats.filter(c => c.needsUpdate).length} need data updates)</summary>
         <div className="verifier-country-grid">
           {countryStats.map(cs => (
             <div
               key={cs.code}
-              className={`verifier-country-card ${cs.stale ? 'stale' : ''}`}
+              className={`verifier-country-card ${cs.needsUpdate ? 'needs-update' : cs.stale ? 'stale' : ''}`}
               onClick={() => setCountryFilter(cs.code === countryFilter ? 'all' : cs.code)}
+              title={cs.statusNote}
             >
               <span className="vc-flag">{cs.flag}</span>
               <div className="vc-info">
                 <span className="vc-name">{cs.name}</span>
                 <span className="vc-meta">
-                  {cs.seasonCount} seasons · {cs.coachCount} coaches · Last: {cs.lastYear}
+                  Our data: {cs.seasonCount} seasons (last {cs.lastYear})
                 </span>
+                {cs.latestKnown && (
+                  <span className={`vc-latest ${cs.needsUpdate ? 'vc-outdated' : ''}`}>
+                    Latest: {cs.latestKnown}
+                    {cs.showStatus === 'hiatus' && ' · ⏸ Hiatus'}
+                    {cs.needsUpdate && ' · 🔄 Needs update'}
+                  </span>
+                )}
               </div>
-              {cs.stale && <span className="vc-stale" title="Last season before 2024">📅</span>}
+              {cs.needsUpdate ? (
+                <span className="vc-badge update" title="Active show, our data is behind">🔄</span>
+              ) : cs.showStatus === 'hiatus' ? (
+                <span className="vc-badge hiatus" title="Show on hiatus/ended">⏸</span>
+              ) : (
+                <span className="vc-badge active" title="Active, data up to date">✅</span>
+              )}
             </div>
           ))}
         </div>
