@@ -393,7 +393,8 @@ body {
 .winner-card:hover { background: var(--surface-hover); }
 .winner-card.selected { background: rgba(29, 185, 84, 0.15); outline: 1px solid var(--spotify-green); }
 .winner-badge { font-size: 1.1rem; flex-shrink: 0; }
-.winner-text { display: flex; flex-direction: column; min-width: 0; }
+.winner-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.winner-info-btn { margin-left: auto; }
 .winner-name { font-weight: 500; font-size: 0.95rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .winner-season { font-size: 0.8rem; color: var(--text-muted); }
 

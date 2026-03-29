@@ -421,6 +421,11 @@ function CoachExplorer({ token, userId }) {
                               {mode === 'clash' && ` · ${allData[w.country]?.flag || ''}`}
                             </span>
                           </div>
+                          <button
+                            className="card-action-btn winner-info-btn"
+                            onClick={(e) => { e.stopPropagation(); setDetailCoach(w.name); }}
+                            title="Who's this?"
+                          >ℹ️</button>
                         </div>
                       );
                     })}
