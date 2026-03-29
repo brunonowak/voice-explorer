@@ -375,7 +375,7 @@ body {
 .coach-card.expanded { grid-column: 1 / -1; }
 .winner-tree {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-top: 1px solid var(--border);
