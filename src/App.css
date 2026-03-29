@@ -1144,9 +1144,12 @@ tr.vr-missing td { background: rgba(231, 76, 60, 0.04); }
 
 /* Verifier actions */
 .vr-actions {
-  display: flex;
-  gap: 0.2rem;
   white-space: nowrap;
+}
+
+.vr-actions > * {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .vr-approve-btn, .vr-unapprove-btn {

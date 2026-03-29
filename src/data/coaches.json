@@ -559,7 +559,7 @@
         "season": 1,
         "year": 2010,
         "coaches": [
-          "Roel van Velzen",
+          "VanVelzen",
           "Jeroen van der Boom",
           "Angela Groothuizen",
           "Nick & Simon"
@@ -569,7 +569,7 @@
         "season": 2,
         "year": 2011,
         "coaches": [
-          "Roel van Velzen",
+          "VanVelzen",
           "Jeroen van der Boom",
           "Angela Groothuizen",
           "Nick & Simon"
@@ -579,7 +579,7 @@
         "season": 3,
         "year": 2012,
         "coaches": [
-          "Roel van Velzen",
+          "VanVelzen",
           "Jeroen van der Boom",
           "Angela Groothuizen",
           "Nick & Simon"
@@ -589,7 +589,7 @@
         "season": 4,
         "year": 2013,
         "coaches": [
-          "Roel van Velzen",
+          "VanVelzen",
           "Jeroen van der Boom",
           "Angela Groothuizen",
           "Nick & Simon"
@@ -642,7 +642,7 @@
           "Ali B",
           "Waylon",
           "Anouk",
-          "Lil' Kleine"
+          "Lil Kleine"
         ]
       },
       {
@@ -652,7 +652,7 @@
           "Ali B",
           "Waylon",
           "Anouk",
-          "Lil' Kleine"
+          "Lil Kleine"
         ]
       },
       {
@@ -876,7 +876,7 @@
           "Florent Pagny",
           "Mika",
           "Zazie",
-          "Matt Pokora"
+          "M. Pokora"
         ]
       },
       {
@@ -1088,7 +1088,7 @@
         "year": 2012,
         "coaches": [
           "David Bisbal",
-          "Rosario Flores",
+          "Rosario",
           "Malú",
           "Melendi"
         ]
@@ -1098,7 +1098,7 @@
         "year": 2013,
         "coaches": [
           "David Bisbal",
-          "Rosario Flores",
+          "Rosario",
           "Malú",
           "Antonio Orozco"
         ]
@@ -1299,7 +1299,7 @@
         "year": 2013,
         "coaches": [
           "Sarah Geronimo",
-          "Bamboo Mañalac",
+          "Bamboo",
           "Lea Salonga",
           "apl.de.ap"
         ]
@@ -1309,7 +1309,7 @@
         "year": 2014,
         "coaches": [
           "Sarah Geronimo",
-          "Bamboo Mañalac",
+          "Bamboo",
           "Lea Salonga",
           "apl.de.ap"
         ]
@@ -1676,7 +1676,7 @@
           "Diana Arbenina",
           "Oleksandr Ponomaryov",
           "Ruslana",
-          "Stas Pyekha"
+          "Stas Piekha"
         ]
       },
       {
@@ -1686,7 +1686,7 @@
           "Ani Lorak",
           "Tamara Gverdtsiteli",
           "Sergey Lazarev",
-          "Svyatoslav Vakarchuk"
+          "Sviatoslav Vakarchuk"
         ]
       },
       {
@@ -1696,7 +1696,7 @@
           "Tina Karol",
           "Potap",
           "Jamala",
-          "Serhiy Babkin"
+          "Serhii Babkin"
         ]
       },
       {
@@ -1704,7 +1704,7 @@
         "year": 2021,
         "coaches": [
           "Nadya Dorofeeva",
-          "Oleg Vynnyk",
+          "Oleg Vinnik",
           "Tina Karol",
           "Dmytro Monatik"
         ]
@@ -1715,7 +1715,7 @@
         "coaches": [
           "Nadya Dorofeeva",
           "Potap",
-          "Svyatoslav Vakarchuk",
+          "Sviatoslav Vakarchuk",
           "Olya Polyakova"
         ]
       },
@@ -1725,7 +1725,7 @@
         "coaches": [
           "Nadya Dorofeeva",
           "Julia Sanina",
-          "Artem Pyvovarov",
+          "Artem Pivovarov",
           "Ivan Klymenko"
         ]
       }
@@ -1761,7 +1761,7 @@
         "year": 2013,
         "coaches": [
           "Wisin & Yandel",
-          "Alejandra Guzmán",
+          "Alejandra Guzman",
           "Marco Antonio Solís",
           "David Bisbal"
         ]
@@ -2245,8 +2245,8 @@
         "season": 1,
         "year": 2012,
         "coaches": [
-          "Assi El Helani",
-          "Sherine Abdel Wahab",
+          "Assi El Hallani",
+          "Sherine",
           "Saber Rebai",
           "Kadim Al Sahir"
         ]
@@ -2255,8 +2255,8 @@
         "season": 2,
         "year": 2013,
         "coaches": [
-          "Assi El Helani",
-          "Sherine Abdel Wahab",
+          "Assi El Hallani",
+          "Sherine",
           "Saber Rebai",
           "Kadim Al Sahir"
         ]
@@ -2265,8 +2265,8 @@
         "season": 3,
         "year": 2014,
         "coaches": [
-          "Assi El Helani",
-          "Sherine Abdel Wahab",
+          "Assi El Hallani",
+          "Sherine",
           "Saber Rebai",
           "Kadim Al Sahir"
         ]
@@ -2275,7 +2275,7 @@
         "season": 4,
         "year": 2018,
         "coaches": [
-          "Assi El Helani",
+          "Assi El Hallani",
           "Elissa",
           "Ahlam",
           "Mohamed Hamaki"
@@ -2285,7 +2285,7 @@
         "season": 5,
         "year": 2019,
         "coaches": [
-          "Assi El Helani",
+          "Assi El Hallani",
           "Ahlam",
           "Mohamed Hamaki",
           "Ragheb Alama"
@@ -2325,7 +2325,7 @@
           "Armand Maulana",
           "Anggun",
           "Titi DJ",
-          "Vidi Aldiano"
+          "VIDI"
         ]
       },
       {
@@ -2334,7 +2334,7 @@
         "coaches": [
           "Armand Maulana",
           "Titi DJ",
-          "Vidi Aldiano",
+          "VIDI",
           "Isyana Sarasvati"
         ]
       }
@@ -2547,7 +2547,7 @@
         "year": 2014,
         "coaches": [
           "Smiley",
-          "Tudor Chirilă",
+          "Tudor Chirila",
           "Loredana Groza",
           "Marius Moga"
         ]
@@ -2557,7 +2557,7 @@
         "year": 2015,
         "coaches": [
           "Smiley",
-          "Tudor Chirilă",
+          "Tudor Chirila",
           "Loredana Groza",
           "Marius Moga"
         ]
@@ -2567,7 +2567,7 @@
         "year": 2016,
         "coaches": [
           "Smiley",
-          "Tudor Chirilă",
+          "Tudor Chirila",
           "Loredana Groza",
           "Marius Moga"
         ]
@@ -2577,7 +2577,7 @@
         "year": 2017,
         "coaches": [
           "Smiley",
-          "Tudor Chirilă",
+          "Tudor Chirila",
           "Loredana Groza",
           "Adrian Despot"
         ]
@@ -2587,7 +2587,7 @@
         "year": 2018,
         "coaches": [
           "Smiley",
-          "Tudor Chirilă",
+          "Tudor Chirila",
           "Irina Rimes",
           "Andra"
         ]
@@ -2597,7 +2597,7 @@
         "year": 2019,
         "coaches": [
           "Smiley",
-          "Tudor Chirilă",
+          "Tudor Chirila",
           "Irina Rimes",
           "Horia Brenciu"
         ]
@@ -2607,7 +2607,7 @@
         "year": 2022,
         "coaches": [
           "Smiley",
-          "Tudor Chirilă",
+          "Tudor Chirila",
           "Irina Rimes",
           "Denis Roabeș"
         ]
@@ -2623,7 +2623,7 @@
         "season": 1,
         "year": 2012,
         "coaches": [
-          "Carola Häggkvist",
+          "Carola",
           "Magnus Uggla",
           "Ola Salo",
           "Petter"
@@ -2971,7 +2971,7 @@
           "Yosef Wolde-Mariam",
           "Espen Lind",
           "Ina Wroldsen",
-          "Jarle Bernhoft"
+          "Bernhoft"
         ]
       },
       {
@@ -2981,7 +2981,7 @@
           "Yosef Wolde-Mariam",
           "Espen Lind",
           "Ina Wroldsen",
-          "Jarle Bernhoft"
+          "Bernhoft"
         ]
       },
       {
@@ -2999,9 +2999,9 @@
         "year": 2022,
         "coaches": [
           "Espen Lind",
-          "Jarle Bernhoft",
+          "Bernhoft",
           "Ingebjørg Bratland",
-          "Marion Raven"
+          "Marion Ravn"
         ]
       }
     ]
@@ -3058,7 +3058,7 @@
           "Thu Phương",
           "Tóc Tiên",
           "Noo Phước Thịnh",
-          "Lam Trường"
+          "Lam Truong"
         ]
       },
       {
@@ -3190,8 +3190,8 @@
         "year": 2012,
         "coaches": [
           "Kangta",
-          "Shin Seung-hun",
-          "Baek Ji-young",
+          "Shin Seung Hun",
+          "Baek Z Young",
           "Gil"
         ]
       },
@@ -3200,8 +3200,8 @@
         "year": 2013,
         "coaches": [
           "Kangta",
-          "Shin Seung-hun",
-          "Baek Ji-young",
+          "Shin Seung Hun",
+          "Baek Z Young",
           "Gil"
         ]
       },
@@ -3210,8 +3210,8 @@
         "year": 2020,
         "coaches": [
           "BoA",
-          "Sung Si-kyung",
-          "Kim Jong-kook",
+          "Sung Si Kyung",
+          "Kim Jong Kook",
           "Dynamic Duo"
         ]
       }
