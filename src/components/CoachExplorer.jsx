@@ -331,13 +331,15 @@ function CoachExplorer({ token, userId }) {
                 key={coach.name}
                 className={`coach-card ${selectedCoaches.has(coach.name) ? 'selected' : ''} ${isExpanded ? 'expanded' : ''}`}
               >
-                <div className="coach-card-main" onClick={() => toggleCoach(coach.name)}>
-                  {artistPhotos[coach.name] ? (
-                    <img src={artistPhotos[coach.name]} alt="" className="coach-photo" />
-                  ) : (
-                    <div className="coach-photo-placeholder">🎤</div>
-                  )}
-                  <div className="coach-text">
+                <div className="coach-card-top" onClick={() => toggleCoach(coach.name)}>
+                  <div className="coach-avatar">
+                    {artistPhotos[coach.name] ? (
+                      <img src={artistPhotos[coach.name]} alt="" className="coach-photo" />
+                    ) : (
+                      <div className="coach-photo-placeholder">🎤</div>
+                    )}
+                  </div>
+                  <div className="coach-info">
                     <span className="coach-name">
                       {coachMeta[coach.name]?.type === 'group'
                         ? <>{coachMeta[coach.name]?.displayName || coach.name} 👥</>
@@ -346,7 +348,7 @@ function CoachExplorer({ token, userId }) {
                     {coachMeta[coach.name]?.type === 'band_member' && (
                       <span className="coach-band-badge">🎸 {coachMeta[coach.name].bandName}</span>
                     )}
-                    <span className="coach-seasons">
+                    <span className="coach-meta-line">
                       {mode === 'clash' && coach.countries.length > 1
                         ? `${coach.countries.map(c => allData[c].flag).join('')} · `
                         : ''
@@ -361,22 +363,23 @@ function CoachExplorer({ token, userId }) {
                           }
                         </>
                       )}
-                      {hasWinners && ` · 🏆${winners.length}`}
                     </span>
                   </div>
+                  <div className="coach-card-actions">
+                    <button
+                      className="card-action-btn"
+                      onClick={(e) => { e.stopPropagation(); setDetailCoach(coach.name); }}
+                      title="Who's this?"
+                    >ℹ️</button>
+                    {isDevMode && (
+                      <button
+                        className="card-action-btn"
+                        onClick={(e) => { e.stopPropagation(); setFixCoach(coach.name); }}
+                        title="Fix Spotify match"
+                      >🔧</button>
+                    )}
+                  </div>
                 </div>
-                <button
-                  className="who-btn"
-                  onClick={(e) => { e.stopPropagation(); setDetailCoach(coach.name); }}
-                  title="Who's this?"
-                >ℹ️</button>
-                {isDevMode && (
-                  <button
-                    className="who-btn fix-btn"
-                    onClick={(e) => { e.stopPropagation(); setFixCoach(coach.name); }}
-                    title="Fix Spotify match"
-                  >🔧</button>
-                )}
                 {hasWinners && (
                   <div
                     className="winner-expand-bar"

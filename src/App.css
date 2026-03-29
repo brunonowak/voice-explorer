@@ -243,19 +243,18 @@ body {
 
 .coach-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
 }
 
 .coach-card {
   background: var(--surface);
   border: 2px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
-  align-items: center;
-  position: relative;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -266,60 +265,86 @@ body {
   background: rgba(29, 185, 84, 0.1);
 }
 
-.coach-card-main {
+.coach-card-top {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
   flex: 1;
   min-width: 0;
-  cursor: pointer;
 }
 
+.coach-avatar { flex-shrink: 0; }
+
 .coach-photo {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  flex-shrink: 0;
+  display: block;
 }
 
 .coach-photo-placeholder {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
-  flex-shrink: 0;
+  font-size: 1.2rem;
 }
 
-.coach-text {
+.coach-info {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.15rem;
   min-width: 0;
+  flex: 1;
 }
 
-.coach-name { font-weight: 600; font-size: 1.05rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.coach-band-badge { font-size: 0.8rem; color: var(--accent); opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.coach-seasons { font-size: 0.85rem; color: var(--text-muted); }
+.coach-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.coach-band-badge {
+  font-size: 0.75rem;
+  color: var(--spotify-green);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.coach-meta-line {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-.who-btn {
+.coach-card-actions {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 0.1rem;
+}
+
+.card-action-btn {
   background: none;
   border: none;
-  font-size: 1rem;
+  font-size: 0.85rem;
   cursor: pointer;
-  padding: 0.6rem;
-  opacity: 0.4;
+  padding: 0.3rem;
+  opacity: 0.35;
   transition: opacity 0.2s;
-  flex-shrink: 0;
+  line-height: 1;
 }
-
-.who-btn:hover { opacity: 1; }
-.expand-btn { font-size: 0.8rem; }
+.card-action-btn:hover { opacity: 1; }
 
 /* Winner expand bar */
 .winner-expand-bar {
@@ -337,14 +362,14 @@ body {
 .winner-expand-bar:hover { background: rgba(29, 185, 84, 0.18); }
 
 /* Winner tree under coach card */
-.coach-card.expanded { flex-wrap: wrap; align-items: stretch; grid-column: 1 / -1; overflow: visible; }
+.coach-card.expanded { grid-column: 1 / -1; }
 .winner-tree {
-  width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 0.5rem;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.15);
 }
 .winner-card {
   display: flex;
