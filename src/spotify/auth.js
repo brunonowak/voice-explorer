@@ -1,6 +1,7 @@
 const SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize';
 const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
-const REDIRECT_URI = window.location.origin + '/callback';
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '');
+const REDIRECT_URI = window.location.origin + BASE_PATH + '/callback';
 const SCOPES = [
   'playlist-modify-public',
   'playlist-modify-private',
@@ -80,7 +81,7 @@ export async function handleCallback(clientId) {
 
   localStorage.setItem('spotify_token', JSON.stringify(tokenData));
   sessionStorage.removeItem('code_verifier');
-  window.history.replaceState({}, document.title, window.location.origin + '/');
+  window.history.replaceState({}, document.title, window.location.origin + BASE_PATH + '/');
 
   return tokenData;
 }
