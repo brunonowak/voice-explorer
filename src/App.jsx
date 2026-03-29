@@ -22,9 +22,31 @@ function App() {
       }
 
       try {
-        // Handle OAuth callback (from /callback redirect)
+        // Handle GitHub Pages SPA redirect from 404.html
         const params = new URLSearchParams(window.location.search);
-        if (params.has('code') || window.location.pathname === '/callback') {
+        if (params.has('__redirect')) {
+          const redirected = new URL(decodeURIComponent(params.get('__redirect')), window.location.origin);
+          const redirectParams = new URLSearchParams(redirected.search);
+          // Replace URL cleanly, preserving the OAuth params
+          const cleanUrl = window.location.origin + window.location.pathname +
+            (redirectParams.toString() ? '?' + redirectParams.toString() : '');
+          window.history.replaceState({}, '', cleanUrl);
+          // Re-read params after redirect
+          const newParams = new URLSearchParams(window.location.search);
+          if (newParams.has('code')) {
+            const tokenData = await handleCallback(CLIENT_ID);
+            if (tokenData) {
+              setToken(tokenData.access_token);
+              const userData = await getCurrentUser(tokenData.access_token);
+              setUser(userData);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+
+        // Handle direct OAuth callback
+        if (params.has('code')) {
           const tokenData = await handleCallback(CLIENT_ID);
           if (tokenData) {
             setToken(tokenData.access_token);

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script>
+      // GitHub Pages SPA hack: 404.html redirects to index.html
+      // preserving the query string (needed for OAuth callback)
+      var l = window.location;
+      var base = '/voice-explorer/';
+      l.replace(base + '?__redirect=' + encodeURIComponent(l.pathname + l.search));
+    </script>
+  </head>
+  <body></body>
+</html>
