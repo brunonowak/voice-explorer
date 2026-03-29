@@ -57,8 +57,8 @@ async function commitOverrideToGitHub(coachName, spotifyId) {
 
   // Encode as UTF-8 base64 (btoa can't handle multi-byte chars like emoji flags)
   const jsonStr = JSON.stringify(content, null, 2) + '\n';
-  const bytes = new TextEncoder().encode(jsonStr);
-  const binStr = Array.from(bytes, b => String.fromCharCode(b)).join('');
+  const encBytes = new TextEncoder().encode(jsonStr);
+  const binStr = Array.from(encBytes, b => String.fromCharCode(b)).join('');
   const base64Content = btoa(binStr);
 
   // Commit
