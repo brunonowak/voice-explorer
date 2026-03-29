@@ -1103,16 +1103,19 @@ body {
 .vr-status { text-align: center; width: 2rem; }
 
 .vr-coach {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.vr-coach > * {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .vr-photo {
   width: 28px;
   height: 28px;
+  margin-right: 0.5rem;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
