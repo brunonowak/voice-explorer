@@ -296,9 +296,13 @@ function CoachExplorer({ token, userId }) {
                   )}
                   <div className="coach-text">
                     <span className="coach-name">
-                      {coachMeta[coach.name]?.displayName || coach.name}
-                      {coachMeta[coach.name]?.type === 'group' && ' 👥'}
+                      {coachMeta[coach.name]?.type === 'group'
+                        ? <>{coachMeta[coach.name]?.displayName || coach.name} 👥</>
+                        : coach.name}
                     </span>
+                    {coachMeta[coach.name]?.type === 'band_member' && (
+                      <span className="coach-band-badge">🎸 {coachMeta[coach.name].bandName}</span>
+                    )}
                     <span className="coach-seasons">
                       {mode === 'clash' && coach.countries.length > 1
                         ? `${coach.countries.map(c => allData[c].flag).join('')} · `

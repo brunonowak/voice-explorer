@@ -3462,23 +3462,23 @@
     },
     "Danny O'Donoghue": {
       "type": "band_member",
-      "displayName": "The Script"
+      "bandName": "The Script"
     },
     "Ricky Wilson": {
       "type": "band_member",
-      "displayName": "Kaiser Chiefs"
+      "bandName": "Kaiser Chiefs"
     },
     "Ivan Klymenko": {
       "type": "band_member",
-      "displayName": "Kalush Orchestra"
+      "bandName": "Kalush Orchestra"
     },
     "Denis Roabeș": {
       "type": "band_member",
-      "displayName": "The Motans"
+      "bandName": "The Motans"
     },
     "Al Bano": {
       "type": "band_member",
-      "displayName": "Al Bano & Romina Power"
+      "bandName": "Al Bano & Romina Power"
     }
   },
   "seasonStatus": {

@@ -44,7 +44,7 @@ async function resolveCoachArtists(token, coachName) {
       coachName,
       band,
       solo,
-      bandName: meta.displayName || band?.name || coachName,
+      bandName: meta.bandName || band?.name || coachName,
       bandFollowers,
       soloFollowers,
       autoBlend,

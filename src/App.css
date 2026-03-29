@@ -304,6 +304,7 @@ body {
 }
 
 .coach-name { font-weight: 600; font-size: 0.9rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.coach-band-badge { font-size: 0.7rem; color: var(--accent); opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .coach-seasons { font-size: 0.75rem; color: var(--text-muted); }
 
 .who-btn {
