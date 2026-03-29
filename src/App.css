@@ -735,3 +735,159 @@ body {
   border-radius: 4px;
   flex-shrink: 0;
 }
+
+/* Artist Fixer (dev mode) */
+.fix-btn { opacity: 0.3; }
+.fix-btn:hover { opacity: 0.8; }
+
+.fixer-modal { max-width: 520px; }
+
+.fixer-current {
+  background: rgba(29, 185, 84, 0.1);
+  border: 1px solid var(--spotify-green);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.fixer-current code {
+  font-size: 0.75rem;
+  background: var(--bg);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.fixer-clear-btn {
+  margin-left: auto;
+  padding: 0.25rem 0.6rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.fixer-clear-btn:hover { color: #e74c3c; border-color: #e74c3c; }
+
+.fixer-saved {
+  background: rgba(29, 185, 84, 0.15);
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.fixer-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0;
+}
+
+.fixer-search {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.fixer-search input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.fixer-search button {
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.fixer-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.fixer-artist {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.fixer-artist:hover { background: var(--surface-hover); }
+.fixer-artist.active { background: rgba(29, 185, 84, 0.15); outline: 2px solid var(--spotify-green); }
+
+.fixer-photo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.fixer-photo-placeholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.fixer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.fixer-name { font-weight: 600; font-size: 0.9rem; }
+.fixer-meta { font-size: 0.75rem; color: var(--text-muted); }
+
+.fixer-id {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+.fixer-export-section { margin-top: 1rem; }
+
+.fixer-export-btn {
+  width: 100%;
+  padding: 0.6rem;
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.fixer-export-btn:hover { border-color: var(--spotify-green); color: var(--spotify-green); }

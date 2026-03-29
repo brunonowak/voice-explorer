@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import allData from '../data/coaches.json';
+import { getMergedOverrides } from './ArtistFixer';
 import {
   searchArtist,
   getArtistTopTracks,
@@ -8,7 +9,7 @@ import {
   addTracksToPlaylist,
 } from '../spotify/api';
 
-const spotifyOverrides = allData.spotifyOverrides || {};
+const spotifyOverrides = getMergedOverrides(allData.spotifyOverrides || {});
 
 function selectTracks(tracks, artistId, { tracksPerCoach, soloOnly, mixType }) {
   let pool = [...tracks];
