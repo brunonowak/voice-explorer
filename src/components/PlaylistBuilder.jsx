@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import allData from '../data/coaches.json';
 import { getMergedOverrides } from './ArtistFixer';
 import {
   searchArtist,
+  getArtist,
   getArtistTopTracks,
   getArtistExpandedTracks,
   createPlaylist,
@@ -10,6 +11,58 @@ import {
 } from '../spotify/api';
 
 const spotifyOverrides = getMergedOverrides(allData.spotifyOverrides || {});
+const coachMeta = allData.coachMeta || {};
+
+// For band_member coaches, figure out the solo vs band situation
+async function resolveCoachArtists(token, coachName) {
+  const meta = coachMeta[coachName];
+  const override = spotifyOverrides[coachName];
+
+  if (meta?.type === 'band_member' && override) {
+    // Override points to the band. Try to find solo profile too.
+    const band = await getArtist(token, override).catch(() => null);
+    // Search without overrides to find the solo profile
+    const soloResults = await searchArtist(token, coachName, null).catch(() => []);
+    const solo = soloResults?.[0] && soloResults[0].id !== override ? soloResults[0] : null;
+
+    const bandFollowers = band?.followers?.total || 0;
+    const soloFollowers = solo?.followers?.total || 0;
+
+    // Auto-decide blend: if band has 10x+ more followers, mostly band
+    let autoBlend = 100; // 100 = all band
+    if (solo && soloFollowers > 0) {
+      const ratio = bandFollowers / Math.max(soloFollowers, 1);
+      if (ratio > 20) autoBlend = 90;
+      else if (ratio > 5) autoBlend = 75;
+      else if (ratio > 2) autoBlend = 60;
+      else if (ratio > 0.5) autoBlend = 50;
+      else autoBlend = 25;
+    }
+
+    return {
+      type: 'band_member',
+      coachName,
+      band,
+      solo,
+      bandName: meta.displayName || band?.name || coachName,
+      bandFollowers,
+      soloFollowers,
+      autoBlend,
+      blend: autoBlend, // user can override
+    };
+  }
+
+  // Regular coach — just search normally
+  const artists = await searchArtist(token, coachName, spotifyOverrides);
+  const artist = artists?.[0] || null;
+  return {
+    type: 'solo',
+    coachName,
+    artist,
+    band: null,
+    solo: null,
+  };
+}
 
 function selectTracks(tracks, artistId, { tracksPerCoach, soloOnly, mixType }) {
   let pool = [...tracks];
@@ -71,7 +124,7 @@ function buildDefaultName(coaches, countryName) {
 
 function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
   const [playlistName, setPlaylistName] = useState(() => buildDefaultName(coaches, countryName));
-  const [trackMode, setTrackMode] = useState('per-coach'); // 'per-coach' or 'total'
+  const [trackMode, setTrackMode] = useState('per-coach');
   const [tracksPerCoach, setTracksPerCoach] = useState(5);
   const [totalTracks, setTotalTracks] = useState(30);
   const [isPublic, setIsPublic] = useState(false);
@@ -81,6 +134,8 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
   const [progress, setProgress] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [coachArtists, setCoachArtists] = useState(null); // resolved artist info
+  const [resolving, setResolving] = useState(false);
 
   const effectivePerCoach = trackMode === 'total'
     ? Math.max(1, Math.ceil(totalTracks / coaches.length))
@@ -88,6 +143,36 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
   const effectiveTotal = trackMode === 'total' ? totalTracks : null;
 
   const needsExpanded = mixType !== 'top-hits';
+
+  // Check if any coach is a band_member type
+  const hasBandMembers = coaches.some(c => coachMeta[c]?.type === 'band_member');
+
+  // Resolve artists for band members (one-time on mount or when coaches change)
+  useEffect(() => {
+    if (!hasBandMembers) return;
+    let cancelled = false;
+    setResolving(true);
+    (async () => {
+      const resolved = {};
+      for (const name of coaches) {
+        if (coachMeta[name]?.type === 'band_member') {
+          resolved[name] = await resolveCoachArtists(token, name);
+        }
+      }
+      if (!cancelled) {
+        setCoachArtists(resolved);
+        setResolving(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [token, coaches, hasBandMembers]);
+
+  const updateBlend = (coachName, blend) => {
+    setCoachArtists(prev => ({
+      ...prev,
+      [coachName]: { ...prev[coachName], blend },
+    }));
+  };
 
   const buildPlaylist = async () => {
     setStatus('searching');
@@ -98,48 +183,96 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
       const skipped = [];
 
       for (const coachName of coaches) {
-        setProgress(`Searching for ${coachName}...`);
-        const artists = await searchArtist(token, coachName, spotifyOverrides);
+        const resolved = coachArtists?.[coachName];
 
-        if (artists.length === 0) {
-          skipped.push(coachName);
-          continue;
+        if (resolved?.type === 'band_member' && resolved.band) {
+          // Blended fetch
+          const blend = resolved.blend; // 0=all solo, 100=all band
+          const bandCount = Math.round(effectivePerCoach * (blend / 100));
+          const soloCount = effectivePerCoach - bandCount;
+
+          setProgress(`Loading ${resolved.bandName} tracks...`);
+
+          // Band tracks
+          let bandTracks = [];
+          if (bandCount > 0) {
+            bandTracks = needsExpanded
+              ? await getArtistExpandedTracks(token, resolved.band.id)
+              : await getArtistTopTracks(token, resolved.band.id);
+            bandTracks = selectTracks(bandTracks, resolved.band.id, {
+              tracksPerCoach: bandCount, soloOnly, mixType,
+            });
+          }
+
+          // Solo tracks
+          let soloTracks = [];
+          if (soloCount > 0 && resolved.solo) {
+            setProgress(`Loading ${coachName} solo tracks...`);
+            soloTracks = needsExpanded
+              ? await getArtistExpandedTracks(token, resolved.solo.id)
+              : await getArtistTopTracks(token, resolved.solo.id);
+            soloTracks = selectTracks(soloTracks, resolved.solo.id, {
+              tracksPerCoach: soloCount, soloOnly, mixType,
+            });
+          }
+
+          const combined = [...bandTracks, ...soloTracks];
+          if (combined.length === 0) {
+            skipped.push(coachName);
+            continue;
+          }
+
+          allTracks.push(
+            ...combined.map(t => ({
+              uri: t.uri,
+              name: t.name,
+              artist: t.artists?.[0]?.name || resolved.bandName,
+              album: t.album?.name ?? '',
+              popularity: t.popularity ?? 0,
+            }))
+          );
+        } else {
+          // Regular coach
+          setProgress(`Searching for ${coachName}...`);
+          const artists = await searchArtist(token, coachName, spotifyOverrides);
+
+          if (artists.length === 0) {
+            skipped.push(coachName);
+            continue;
+          }
+
+          const artist = artists[0];
+
+          setProgress(
+            needsExpanded
+              ? `Loading discography for ${coachName}...`
+              : `Getting top tracks for ${coachName}...`
+          );
+
+          const tracks = needsExpanded
+            ? await getArtistExpandedTracks(token, artist.id)
+            : await getArtistTopTracks(token, artist.id);
+
+          const selected = selectTracks(tracks, artist.id, {
+            tracksPerCoach: effectivePerCoach, soloOnly, mixType,
+          });
+
+          allTracks.push(
+            ...selected.map(t => ({
+              uri: t.uri,
+              name: t.name,
+              artist: artist.name,
+              album: t.album?.name ?? '',
+              popularity: t.popularity ?? 0,
+            }))
+          );
         }
-
-        const artist = artists[0];
-
-        setProgress(
-          needsExpanded
-            ? `Loading discography for ${coachName}...`
-            : `Getting top tracks for ${coachName}...`
-        );
-
-        const tracks = needsExpanded
-          ? await getArtistExpandedTracks(token, artist.id)
-          : await getArtistTopTracks(token, artist.id);
-
-        const selected = selectTracks(tracks, artist.id, {
-          tracksPerCoach: effectivePerCoach,
-          soloOnly,
-          mixType,
-        });
-
-        allTracks.push(
-          ...selected.map(t => ({
-            uri: t.uri,
-            name: t.name,
-            artist: artist.name,
-            album: t.album?.name ?? '',
-            popularity: t.popularity ?? 0,
-          }))
-        );
       }
 
       if (allTracks.length === 0) {
         throw new Error('No tracks found for any selected coach');
       }
 
-      // Trim to total if using total mode
       if (effectiveTotal && allTracks.length > effectiveTotal) {
         allTracks.splice(effectiveTotal);
       }
@@ -149,9 +282,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
 
       const mixLabel = MIX_OPTIONS.find(m => m.value === mixType)?.label ?? '';
       const playlist = await createPlaylist(
-        token,
-        userId,
-        playlistName,
+        token, userId, playlistName,
         `${mixLabel} mix — ${coaches.join(', ')} · Generated by Voice Explorer`,
         isPublic
       );
@@ -269,6 +400,45 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
             <div className="coach-list">
               {coaches.map(c => <span key={c} className="coach-tag">{c}</span>)}
             </div>
+
+            {/* Band blend controls */}
+            {hasBandMembers && coachArtists && (
+              <div className="blend-section">
+                <span className="form-label">🎸 Solo vs Band Blend</span>
+                {coaches.filter(c => coachArtists[c]?.type === 'band_member').map(c => {
+                  const r = coachArtists[c];
+                  if (!r) return null;
+                  const bandPct = r.blend;
+                  const soloPct = 100 - bandPct;
+                  return (
+                    <div key={c} className="blend-row">
+                      <div className="blend-header">
+                        <span className="blend-coach">{c}</span>
+                        <span className="blend-label">
+                          {bandPct === 100 ? `100% ${r.bandName}` :
+                           bandPct === 0 ? '100% Solo' :
+                           `${soloPct}% Solo · ${bandPct}% ${r.bandName}`}
+                        </span>
+                      </div>
+                      <div className="blend-control">
+                        <span className="blend-end">Solo{r.solo ? ` (${(r.soloFollowers/1000).toFixed(0)}K)` : ''}</span>
+                        <input
+                          type="range" min={0} max={100} step={10}
+                          value={bandPct}
+                          onChange={e => updateBlend(c, +e.target.value)}
+                        />
+                        <span className="blend-end">{r.bandName} ({(r.bandFollowers/1000).toFixed(0)}K)</span>
+                      </div>
+                      <div className="blend-hint">
+                        Auto: {r.autoBlend}% band ({r.bandFollowers > r.soloFollowers * 10 ? 'band much bigger' :
+                          r.bandFollowers > r.soloFollowers * 2 ? 'band bigger' : 'comparable'})
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {resolving && <p className="note">Loading band info...</p>}
 
             <button className="create-btn" onClick={buildPlaylist}>
               Create Playlist

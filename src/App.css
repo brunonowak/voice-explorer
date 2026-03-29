@@ -1200,3 +1200,65 @@ tr.vr-missing td { background: rgba(231, 76, 60, 0.04); }
   border-color: rgba(243, 156, 18, 0.5);
   background: rgba(243, 156, 18, 0.05);
 }
+
+/* Solo vs Band Blend */
+.blend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.blend-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.blend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.blend-coach {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.blend-label {
+  font-size: 0.75rem;
+  color: var(--spotify-green);
+  font-weight: 500;
+}
+
+.blend-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.blend-control input[type="range"] {
+  flex: 1;
+  accent-color: var(--spotify-green);
+}
+
+.blend-end {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.blend-end:last-child {
+  text-align: right;
+}
+
+.blend-hint {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
