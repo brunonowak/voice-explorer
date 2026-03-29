@@ -3329,6 +3329,7 @@
     "Benji & Joel Madden": "5aYyPjAsLj7UzANzdupwnS",
     "Bigflo & Oli": "5mmEMfYChd6MImBagU7zCs",
     "Dan + Shay": "7z5WFjZAIYejWy0NI5lv4T",
+    "Danny O'Donoghue": "3AQRLZ9PuTAozP28Skbq8V",
     "Gökhan Özoğuz": "3sv9sEJRa4sINAa33LUjdq",
     "Hülya Avşar": "5ZQ2xzMSMon0UUnulwsPiO",
     "Jenifer": "7p0bICJNx2HM4jS28qexvv",
@@ -3336,6 +3337,7 @@
     "Natalia Druyts": "2ngqIbDud3EeLNAdrZCWyN",
     "Nick & Simon": "3jBNLmJDEBWEoidTT7l1Jn",
     "Oğuzhan Koç": "1nFJWl30l3PAHei86OxN0i",
+    "Ricky Wilson": "0LbLWjaweRbO4FDKYlbfNt",
     "Sharin Foo": "4ugVHrnevIhLgapMEGv62z",
     "Sido": "4Yttlv9ndGjCDCVLqM7ACq",
     "Suzan & Freek": "77IW5ZK1smDQYYKDCQugXh",
@@ -3376,6 +3378,14 @@
     "Tomson & Baron": {
       "type": "group",
       "displayName": "Afromental"
+    },
+    "Danny O'Donoghue": {
+      "type": "band_member",
+      "displayName": "The Script"
+    },
+    "Ricky Wilson": {
+      "type": "band_member",
+      "displayName": "Kaiser Chiefs"
     }
   }
 }
