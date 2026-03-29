@@ -492,6 +492,23 @@ body {
 
 .checkbox-label input { accent-color: var(--spotify-green); }
 
+.order-toggle { display: flex; flex-direction: column; gap: 0.4rem; }
+.order-label { font-size: 0.85rem; color: var(--text-muted); }
+.order-options { display: flex; gap: 0.4rem; }
+.order-btn {
+  padding: 0.35rem 0.75rem;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.order-btn:hover { border-color: var(--text-muted); color: var(--text); }
+.order-btn.active { border-color: var(--spotify-green); color: var(--text); background: rgba(29,185,84,0.1); }
+
 .track-estimate { font-size: 0.85rem; color: var(--text-muted); }
 
 .coach-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }

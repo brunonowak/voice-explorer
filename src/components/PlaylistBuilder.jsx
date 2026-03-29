@@ -131,6 +131,7 @@ function PlaylistBuilder({ token, userId, coaches, winners = [], countryName, on
   const [isPublic, setIsPublic] = useState(false);
   const [soloOnly, setSoloOnly] = useState(true);
   const [mixType, setMixType] = useState('balanced');
+  const [trackOrder, setTrackOrder] = useState('grouped'); // 'grouped' or 'interleaved'
   const [status, setStatus] = useState('idle');
   const [progress, setProgress] = useState('');
   const [result, setResult] = useState(null);
@@ -180,7 +181,7 @@ function PlaylistBuilder({ token, userId, coaches, winners = [], countryName, on
     setError(null);
 
     try {
-      const allTracks = [];
+      const trackBuckets = []; // array of { artist, tracks[] }
       const skipped = [];
 
       for (const coachName of coaches) {
@@ -223,15 +224,16 @@ function PlaylistBuilder({ token, userId, coaches, winners = [], countryName, on
             continue;
           }
 
-          allTracks.push(
-            ...combined.map(t => ({
+          trackBuckets.push({
+            artist: coachName,
+            tracks: combined.map(t => ({
               uri: t.uri,
               name: t.name,
               artist: t.artists?.[0]?.name || resolved.bandName,
               album: t.album?.name ?? '',
               popularity: t.popularity ?? 0,
-            }))
-          );
+            })),
+          });
         } else {
           // Regular coach
           setProgress(`Searching for ${coachName}...`);
@@ -258,15 +260,16 @@ function PlaylistBuilder({ token, userId, coaches, winners = [], countryName, on
             tracksPerCoach: effectivePerCoach, soloOnly, mixType,
           });
 
-          allTracks.push(
-            ...selected.map(t => ({
+          trackBuckets.push({
+            artist: artist.name,
+            tracks: selected.map(t => ({
               uri: t.uri,
               name: t.name,
               artist: artist.name,
               album: t.album?.name ?? '',
               popularity: t.popularity ?? 0,
-            }))
-          );
+            })),
+          });
         }
       }
 
@@ -296,15 +299,37 @@ function PlaylistBuilder({ token, userId, coaches, winners = [], countryName, on
           tracksPerCoach: effectivePerCoach, soloOnly, mixType,
         });
 
-        allTracks.push(
-          ...selected.map(t => ({
+        trackBuckets.push({
+          artist: artist.name,
+          tracks: selected.map(t => ({
             uri: t.uri,
             name: t.name,
             artist: artist.name,
             album: t.album?.name ?? '',
             popularity: t.popularity ?? 0,
-          }))
-        );
+          })),
+        });
+      }
+
+      // Flatten buckets into final track list
+      let allTracks;
+      if (trackOrder === 'interleaved') {
+        // Round-robin: take 1 track from each artist in turn
+        allTracks = [];
+        const iters = trackBuckets.map(b => b.tracks[Symbol.iterator]());
+        let done = false;
+        while (!done) {
+          done = true;
+          for (const it of iters) {
+            const next = it.next();
+            if (!next.done) {
+              allTracks.push(next.value);
+              done = false;
+            }
+          }
+        }
+      } else {
+        allTracks = trackBuckets.flatMap(b => b.tracks);
       }
 
       if (allTracks.length === 0) {
@@ -418,6 +443,20 @@ function PlaylistBuilder({ token, userId, coaches, winners = [], countryName, on
               />
               Solo tracks only (no features / collabs)
             </label>
+
+            <div className="order-toggle">
+              <span className="order-label">Track order</span>
+              <div className="order-options">
+                <button
+                  className={`order-btn ${trackOrder === 'grouped' ? 'active' : ''}`}
+                  onClick={() => setTrackOrder('grouped')}
+                >📦 Grouped</button>
+                <button
+                  className={`order-btn ${trackOrder === 'interleaved' ? 'active' : ''}`}
+                  onClick={() => setTrackOrder('interleaved')}
+                >🔀 Alternating</button>
+              </div>
+            </div>
 
             <label className="checkbox-label">
               <input
