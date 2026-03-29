@@ -7,8 +7,20 @@ import ArtistFixer, { getMergedOverrides } from './ArtistFixer';
 import { searchArtist } from '../spotify/api';
 
 const jsonOverrides = allData.spotifyOverrides || {};
-const coachMeta = allData.coachMeta || {};
+const jsonCoachMeta = allData.coachMeta || {};
 const countryCodes = Object.keys(allData).filter(k => k !== 'spotifyOverrides' && k !== 'coachMeta');
+
+// Merge JSON coachMeta with localStorage overrides
+function getMergedCoachMeta() {
+  let localMeta = {};
+  try { localMeta = JSON.parse(localStorage.getItem('voiceExplorer_coachMeta') || '{}'); } catch {}
+  const merged = { ...jsonCoachMeta };
+  for (const [name, meta] of Object.entries(localMeta)) {
+    merged[name] = { ...(merged[name] || {}), ...meta };
+  }
+  return merged;
+}
+const coachMeta = getMergedCoachMeta();
 
 // Global cache so we don't re-fetch across country switches
 const artistCache = new Map();

@@ -4,7 +4,18 @@ import ArtistFixer, { getMergedOverrides } from './ArtistFixer';
 import { searchArtist } from '../spotify/api';
 
 const jsonOverrides = allData.spotifyOverrides || {};
+const jsonCoachMeta = allData.coachMeta || {};
 const countryCodes = Object.keys(allData).filter(k => k !== 'spotifyOverrides' && k !== 'coachMeta');
+
+function getMergedCoachMeta() {
+  let localMeta = {};
+  try { localMeta = JSON.parse(localStorage.getItem('voiceExplorer_coachMeta') || '{}'); } catch {}
+  const merged = { ...jsonCoachMeta };
+  for (const [name, meta] of Object.entries(localMeta)) {
+    merged[name] = { ...(merged[name] || {}), ...meta };
+  }
+  return merged;
+}
 
 const RESULTS_KEY = 'voiceExplorer_verifyResults';
 
@@ -19,6 +30,7 @@ function saveResults(results) {
 
 function getStatus(result) {
   if (!result) return 'pending';
+  if (result.approved) return 'ok';
   if (result.noMatch) return 'missing';
   if (result.nameMismatch || result.noImages || result.lowFollowers) return 'warning';
   return 'ok';
@@ -33,9 +45,32 @@ function CoachVerifier({ token, onClose }) {
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState('');
   const [fixCoach, setFixCoach] = useState(null);
-  const [filter, setFilter] = useState('all'); // all, warning, missing, ok
+  const [renameCoach, setRenameCoach] = useState(null);
+  const [renameTo, setRenameTo] = useState('');
+  const [filter, setFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
   const cancelRef = useRef(false);
+
+  const coachMeta = useMemo(() => getMergedCoachMeta(), [renameCoach]);
+
+  const approveCoach = (name) => {
+    const updated = { ...results };
+    if (updated[name]) {
+      updated[name] = { ...updated[name], approved: true };
+      setResults(updated);
+      saveResults(updated);
+    }
+  };
+
+  const unapproveCoach = (name) => {
+    const updated = { ...results };
+    if (updated[name]) {
+      const { approved, ...rest } = updated[name];
+      updated[name] = rest;
+      setResults(updated);
+      saveResults(updated);
+    }
+  };
 
   const overrides = useMemo(() => getMergedOverrides(jsonOverrides), [fixCoach]);
 
@@ -252,23 +287,29 @@ function CoachVerifier({ token, onClose }) {
               <th>Spotify Match</th>
               <th>Followers</th>
               <th>Countries</th>
-              <th>Fix</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredCoaches.map(coach => {
               const r = results[coach.name];
               const status = getStatus(r);
+              const meta = coachMeta[coach.name];
               return (
                 <tr key={coach.name} className={`vr-${status}`}>
                   <td className="vr-status">{statusIcon(status)}</td>
                   <td className="vr-coach">
                     {r?.imageUrl && <img src={r.imageUrl} alt="" className="vr-photo" />}
-                    <span>{coach.name}</span>
+                    <div className="vr-coach-names">
+                      <span>{coach.name}</span>
+                      {meta?.displayName && meta.displayName !== coach.name && (
+                        <span className="vr-display-name">→ {meta.displayName}</span>
+                      )}
+                    </div>
                   </td>
                   <td className="vr-match">
                     {r?.spotifyName ? (
-                      <span className={r.nameMismatch ? 'vr-mismatch' : ''}>
+                      <span className={r.nameMismatch && !r.approved ? 'vr-mismatch' : ''}>
                         {r.spotifyName}
                         {r.hasOverride && ' 🔒'}
                       </span>
@@ -278,7 +319,7 @@ function CoachVerifier({ token, onClose }) {
                   </td>
                   <td className="vr-followers">
                     {r?.followers != null ? (
-                      <span className={r.lowFollowers ? 'vr-low' : ''}>
+                      <span className={r.lowFollowers && !r.approved ? 'vr-low' : ''}>
                         {r.followers.toLocaleString()}
                       </span>
                     ) : '—'}
@@ -286,8 +327,18 @@ function CoachVerifier({ token, onClose }) {
                   <td className="vr-countries">
                     {coach.countries.map(c => allData[c].flag).join('')}
                   </td>
-                  <td>
-                    <button className="vr-fix-btn" onClick={() => setFixCoach(coach.name)}>🔧</button>
+                  <td className="vr-actions">
+                    {status === 'warning' && (
+                      <button className="vr-approve-btn" onClick={() => approveCoach(coach.name)} title="Mark as correct">✓</button>
+                    )}
+                    {r?.approved && (
+                      <button className="vr-unapprove-btn" onClick={() => unapproveCoach(coach.name)} title="Remove approval">↩</button>
+                    )}
+                    <button className="vr-fix-btn" onClick={() => {
+                      setRenameCoach(coach.name);
+                      setRenameTo(meta?.displayName || r?.spotifyName || coach.name);
+                    }} title="Set display name">✏️</button>
+                    <button className="vr-fix-btn" onClick={() => setFixCoach(coach.name)} title="Fix Spotify match">🔧</button>
                   </td>
                 </tr>
               );
@@ -310,8 +361,49 @@ function CoachVerifier({ token, onClose }) {
           }}
         />
       )}
+
+      {renameCoach && (
+        <div className="modal-overlay" onClick={() => setRenameCoach(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
+            <button className="modal-close" onClick={() => setRenameCoach(null)}>✕</button>
+            <h2>✏️ Display Name</h2>
+            <p className="fixer-hint">Coach in data: <strong>{renameCoach}</strong></p>
+            <p className="fixer-hint">Set the name shown in the app:</p>
+            <div className="fixer-search" style={{ marginTop: '0.75rem' }}>
+              <input
+                type="text"
+                value={renameTo}
+                onChange={e => setRenameTo(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && saveDisplayName()}
+                placeholder="Display name..."
+              />
+              <button onClick={saveDisplayName}>💾</button>
+            </div>
+            {renameTo && renameTo !== renameCoach && (
+              <p className="fixer-hint" style={{ marginTop: '0.5rem' }}>
+                Will show as: <strong>{renameTo}</strong>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
+
+  function saveDisplayName() {
+    if (!renameCoach || !renameTo.trim()) return;
+    // Save to localStorage coachMeta overrides
+    const META_KEY = 'voiceExplorer_coachMeta';
+    let localMeta = {};
+    try { localMeta = JSON.parse(localStorage.getItem(META_KEY) || '{}'); } catch {}
+    if (renameTo.trim() === renameCoach) {
+      delete localMeta[renameCoach];
+    } else {
+      localMeta[renameCoach] = { ...localMeta[renameCoach], displayName: renameTo.trim() };
+    }
+    localStorage.setItem(META_KEY, JSON.stringify(localMeta));
+    setRenameCoach(null);
+  }
 }
 
 export default CoachVerifier;
