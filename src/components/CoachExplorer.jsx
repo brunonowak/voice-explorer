@@ -106,18 +106,27 @@ function CoachExplorer({ token, userId }) {
   // Fetch artist photos for visible coaches (parallel, batched, with retry)
   const fetchPhotos = useCallback(async () => {
     if (!token) return;
-    // Only retry failed ones (null) up to 2 times; skip successfully cached
+
+    // Always apply cached photos first (instant render on country switch)
+    const cached = {};
+    allCoaches.forEach(c => {
+      if (artistCache.has(c.name) && artistCache.get(c.name)) {
+        cached[c.name] = artistCache.get(c.name);
+      }
+    });
+    setArtistPhotos(cached);
+
+    // Then fetch any uncached ones (or retry nulls)
     const uncached = allCoaches.map(c => c.name).filter(n => !artistCache.has(n) || artistCache.get(n) === null);
+    if (uncached.length === 0) return;
 
     const fetchOne = async (name, attempt = 0) => {
       try {
         const artists = await searchArtist(token, name, spotifyOverrides);
-        // Find first artist that actually has images
         const withImg = artists.find(a => a.images?.length > 0);
         const img = withImg?.images?.[1]?.url || withImg?.images?.[0]?.url || null;
         artistCache.set(name, img);
       } catch (err) {
-        // Retry once after a delay (handles 429 rate limits)
         if (attempt < 1) {
           await new Promise(r => setTimeout(r, 1500));
           return fetchOne(name, attempt + 1);
@@ -131,9 +140,11 @@ function CoachExplorer({ token, userId }) {
       await Promise.all(batch.map(name => fetchOne(name)));
       const photos = {};
       allCoaches.forEach(c => {
-        if (artistCache.has(c.name)) photos[c.name] = artistCache.get(c.name);
+        if (artistCache.has(c.name) && artistCache.get(c.name)) {
+          photos[c.name] = artistCache.get(c.name);
+        }
       });
-      setArtistPhotos({ ...photos });
+      setArtistPhotos(photos);
     }
   }, [token, allCoaches, spotifyOverrides]);
 
