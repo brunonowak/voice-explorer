@@ -1,14 +1,9 @@
-function Header({ user, onLogout, isDevMode, onToggleVerifier, showVerifier }) {
+function Header({ user, onLogout, isAdmin }) {
   return (
     <header className="header">
       <h1><a href={import.meta.env.BASE_URL} style={{ color: 'inherit', textDecoration: 'none' }}>🎤 Coach Playlist Generator</a></h1>
       <div className="header-right">
-        {isDevMode && (
-          <button
-            className={`dev-btn ${showVerifier ? 'active' : ''}`}
-            onClick={onToggleVerifier}
-          >🔍 Verify</button>
-        )}
+        {isAdmin && <span className="admin-badge">🔐 Admin</span>}
         {user && <span className="user-info">{user.display_name}</span>}
         <button className="logout-btn" onClick={onLogout}>Log out</button>
       </div>

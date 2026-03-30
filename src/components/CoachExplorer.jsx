@@ -3,7 +3,7 @@ import allData from '../data/coaches.json';
 import PlaylistBuilder from './PlaylistBuilder';
 import CoachTimeline from './CoachTimeline';
 import CoachDetail from './CoachDetail';
-import ArtistFixer, { getMergedOverrides } from './ArtistFixer';
+import { getMergedOverrides } from './ArtistFixer';
 import { searchArtist } from '../spotify/api';
 
 const jsonOverrides = allData.spotifyOverrides || {};
@@ -33,8 +33,6 @@ const coachMeta = getMergedCoachMeta();
 // Global cache so we don't re-fetch across country switches
 const artistCache = new Map();
 
-const isDevMode = new URLSearchParams(window.location.search).has('dev');
-
 function CoachExplorer({ token, userId }) {
   const [mode, setMode] = useState('single'); // 'single' or 'clash'
   const [countryCode, setCountryCode] = useState('US');
@@ -44,10 +42,9 @@ function CoachExplorer({ token, userId }) {
   const [showPlaylistBuilder, setShowPlaylistBuilder] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
   const [detailCoach, setDetailCoach] = useState(null);
-  const [fixCoach, setFixCoach] = useState(null);
   const [artistPhotos, setArtistPhotos] = useState({});
 
-  const spotifyOverrides = useMemo(() => getMergedOverrides(jsonOverrides), [fixCoach]);
+  const spotifyOverrides = useMemo(() => getMergedOverrides(jsonOverrides), []);
 
   // Single mode data
   const country = allData[countryCode];
@@ -342,13 +339,6 @@ function CoachExplorer({ token, userId }) {
                       onClick={(e) => { e.stopPropagation(); setDetailCoach(coach.name); }}
                       title="Who's this?"
                     >ℹ️</button>
-                    {isDevMode && (
-                      <button
-                        className="card-action-btn"
-                        onClick={(e) => { e.stopPropagation(); setFixCoach(coach.name); }}
-                        title="Fix Spotify match"
-                      >🔧</button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -380,14 +370,6 @@ function CoachExplorer({ token, userId }) {
           token={token}
           coachName={detailCoach}
           onClose={() => setDetailCoach(null)}
-        />
-      )}
-
-      {fixCoach && (
-        <ArtistFixer
-          token={token}
-          coachName={fixCoach}
-          onClose={() => setFixCoach(null)}
         />
       )}
     </main>

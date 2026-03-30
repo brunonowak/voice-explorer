@@ -975,20 +975,48 @@ body {
 }
 
 /* Dev mode button */
-.dev-btn {
-  padding: 0.4rem 0.8rem;
-  background: transparent;
-  color: var(--text-muted);
+/* Admin gate */
+.admin-gate {
+  max-width: 400px;
+  margin: 4rem auto;
+  text-align: center;
+  padding: 2.5rem;
+  background: var(--surface);
+  border-radius: 16px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-family: inherit;
-  transition: all 0.2s;
 }
-
-.dev-btn:hover { color: var(--text); border-color: var(--text-muted); }
-.dev-btn.active { color: var(--spotify-green); border-color: var(--spotify-green); }
+.admin-gate h2 { font-size: 1.5rem; margin-bottom: 0.75rem; }
+.admin-gate p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+.admin-gate form { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.admin-pat-input {
+  flex: 1;
+  padding: 0.6rem 0.8rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+.admin-pat-btn {
+  padding: 0.6rem 1.2rem;
+  background: var(--spotify-green);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.admin-error { color: #e74c3c; font-size: 0.85rem; margin-bottom: 1rem; }
+.admin-back { color: var(--text-muted); font-size: 0.85rem; }
+.admin-badge {
+  font-size: 0.8rem;
+  color: var(--spotify-green);
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--spotify-green);
+  border-radius: 6px;
+}
 
 /* Coach Verifier */
 .verifier-page {
