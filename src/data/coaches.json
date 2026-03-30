@@ -3848,6 +3848,66 @@
       "status": "active",
       "latestKnown": "S5 (2025)",
       "note": "TVA network"
+    },
+    "IL": {
+      "status": "ended",
+      "note": "Ended after season 5 (2019)"
     }
+  },
+  "IL": {
+    "name": "Israel",
+    "flag": "🇮🇱",
+    "seasons": [
+      {
+        "season": 1,
+        "year": 2012,
+        "coaches": [
+          "Rami Kleinstein",
+          "Sarit Hadad",
+          "Aviv Geffen",
+          "Shlomi Shabat"
+        ]
+      },
+      {
+        "season": 2,
+        "year": 2013,
+        "coaches": [
+          "Shlomi Shabat",
+          "Aviv Geffen",
+          "Sarit Hadad",
+          "Shlomi Bracha"
+        ]
+      },
+      {
+        "season": 3,
+        "year": 2015,
+        "coaches": [
+          "Shlomi Shabat",
+          "Aviv Geffen",
+          "Sarit Hadad",
+          "Mosh Ben-Ari"
+        ]
+      },
+      {
+        "season": 4,
+        "year": 2017,
+        "coaches": [
+          "Avraham Tal",
+          "Aviv Geffen",
+          "Shlomi Shabat",
+          "Miri Mesika"
+        ]
+      },
+      {
+        "season": 5,
+        "year": 2019,
+        "coaches": [
+          "Ivri Lider",
+          "Nasrin Kadri",
+          "Shlomi Shabat",
+          "Doron Medalie"
+        ]
+      }
+    ]
   }
 }

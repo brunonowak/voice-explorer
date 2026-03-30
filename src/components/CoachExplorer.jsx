@@ -15,7 +15,7 @@ const countryRegions = [
   { label: 'Europe', codes: ['UK', 'IE', 'FR', 'DE', 'NL', 'BE', 'ES', 'PT', 'IT', 'GR', 'PL', 'RO', 'NO', 'SE', 'DK', 'FI'] },
   { label: 'Eastern Europe', codes: ['RU', 'UA', 'TR'] },
   { label: 'Asia & Pacific', codes: ['AU', 'KR', 'IN', 'ID', 'PH', 'TH', 'VN'] },
-  { label: 'Africa & Middle East', codes: ['ZA', 'NG', 'ARAB'] },
+  { label: 'Africa & Middle East', codes: ['ZA', 'NG', 'ARAB', 'IL'] },
 ].map(r => ({ ...r, codes: r.codes.filter(c => countryCodes.includes(c)) }));
 
 // Merge JSON coachMeta with localStorage overrides
