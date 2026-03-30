@@ -4,7 +4,7 @@ import { searchArtist } from '../spotify/api';
 const STORAGE_KEY = 'voiceExplorer_artistOverrides';
 const GH_PAT_KEY = 'voiceExplorer_githubPat';
 const REPO_OWNER = 'brunonowak';
-const REPO_NAME = 'voice-explorer';
+const REPO_NAME = 'coach-playlist-generator';
 const FILE_PATH = 'src/data/coaches.json';
 
 // Load overrides from localStorage
