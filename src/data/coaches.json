@@ -3510,6 +3510,202 @@
     "Al Bano": {
       "type": "band_member",
       "bandName": "Al Bano & Romina Power"
+    },
+    "Adam Levine": {
+      "type": "band_member",
+      "bandName": "Maroon 5"
+    },
+    "Gwen Stefani": {
+      "type": "band_member",
+      "bandName": "No Doubt"
+    },
+    "Nick Jonas": {
+      "type": "band_member",
+      "bandName": "Jonas Brothers"
+    },
+    "Pharrell Williams": {
+      "type": "band_member",
+      "bandName": "N.E.R.D"
+    },
+    "CeeLo Green": {
+      "type": "band_member",
+      "bandName": "Gnarls Barkley"
+    },
+    "will.i.am": {
+      "type": "band_member",
+      "bandName": "Black Eyed Peas"
+    },
+    "Boy George": {
+      "type": "band_member",
+      "bandName": "Culture Club"
+    },
+    "Tom Fletcher": {
+      "type": "band_member",
+      "bandName": "McFly"
+    },
+    "Gavin Rossdale": {
+      "type": "band_member",
+      "bandName": "Bush"
+    },
+    "Melanie C": {
+      "type": "band_member",
+      "bandName": "Spice Girls"
+    },
+    "Joel Madden": {
+      "type": "band_member",
+      "bandName": "Good Charlotte"
+    },
+    "Ronan Keating": {
+      "type": "band_member",
+      "bandName": "Boyzone"
+    },
+    "Kian Egan": {
+      "type": "band_member",
+      "bandName": "Westlife"
+    },
+    "Una Healy": {
+      "type": "band_member",
+      "bandName": "The Saturdays"
+    },
+    "Sharon Corr": {
+      "type": "band_member",
+      "bandName": "The Corrs"
+    },
+    "Dolores O'Riordan": {
+      "type": "band_member",
+      "bandName": "The Cranberries"
+    },
+    "Bressie": {
+      "type": "band_member",
+      "bandName": "The Blizzards"
+    },
+    "Stefanie Kloß": {
+      "type": "band_member",
+      "bandName": "Silbermond"
+    },
+    "Samu Haber": {
+      "type": "band_member",
+      "bandName": "Sunrise Avenue"
+    },
+    "Max Herre": {
+      "type": "band_member",
+      "bandName": "Freundeskreis"
+    },
+    "Michael Patrick Kelly": {
+      "type": "band_member",
+      "bandName": "The Kelly Family"
+    },
+    "Rea Garvey": {
+      "type": "band_member",
+      "bandName": "Reamonn"
+    },
+    "Dinand Woesthoff": {
+      "type": "band_member",
+      "bandName": "Kane"
+    },
+    "Ilse DeLange": {
+      "type": "band_member",
+      "bandName": "The Common Linnets"
+    },
+    "Roby Facchinetti": {
+      "type": "band_member",
+      "bandName": "Pooh"
+    },
+    "Max Pezzali": {
+      "type": "band_member",
+      "bandName": "883"
+    },
+    "Piero Pelù": {
+      "type": "band_member",
+      "bandName": "Litfiba"
+    },
+    "J-Ax": {
+      "type": "band_member",
+      "bandName": "Articolo 31"
+    },
+    "Cristina Scabbia": {
+      "type": "band_member",
+      "bandName": "Lacuna Coil"
+    },
+    "Morten Harket": {
+      "type": "band_member",
+      "bandName": "a-ha"
+    },
+    "Magne Furuholmen": {
+      "type": "band_member",
+      "bandName": "a-ha"
+    },
+    "Ola Salo": {
+      "type": "band_member",
+      "bandName": "The Ark"
+    },
+    "Lene Nystrøm": {
+      "type": "band_member",
+      "bandName": "Aqua"
+    },
+    "Sharin Foo": {
+      "type": "band_member",
+      "bandName": "The Raveonettes"
+    },
+    "Toni Wirtanen": {
+      "type": "band_member",
+      "bandName": "Apulanta"
+    },
+    "Michael Monroe": {
+      "type": "band_member",
+      "bandName": "Hanoi Rocks"
+    },
+    "Tarja Turunen": {
+      "type": "band_member",
+      "bandName": "Nightwish"
+    },
+    "Tudor Chirila": {
+      "type": "band_member",
+      "bandName": "Vama"
+    },
+    "Diana Arbenina": {
+      "type": "band_member",
+      "bandName": "Nochnye Snaipery"
+    },
+    "Sergey Shnurov": {
+      "type": "band_member",
+      "bandName": "Leningrad"
+    },
+    "Piotr Cugowski": {
+      "type": "band_member",
+      "bandName": "Bracia"
+    },
+    "Marek Piekarczyk": {
+      "type": "band_member",
+      "bandName": "TSA"
+    },
+    "Nergal": {
+      "type": "band_member",
+      "bandName": "Behemoth"
+    },
+    "Beto Cuevas": {
+      "type": "band_member",
+      "bandName": "La Ley"
+    },
+    "Giring Ganesha": {
+      "type": "band_member",
+      "bandName": "Nidji"
+    },
+    "Armand Maulana": {
+      "type": "band_member",
+      "bandName": "Gigi"
+    },
+    "Ari Lasso": {
+      "type": "band_member",
+      "bandName": "Dewa 19"
+    },
+    "Trần Lập": {
+      "type": "band_member",
+      "bandName": "Bức Tường"
+    },
+    "Bamboo": {
+      "type": "band_member",
+      "bandName": "Rivermaya"
     }
   },
   "seasonStatus": {

@@ -18,19 +18,27 @@ async function resolveCoachArtists(token, coachName) {
   const meta = coachMeta[coachName];
   const override = spotifyOverrides[coachName];
 
-  if (meta?.type === 'band_member' && override) {
-    // Override points to the band. Try to find solo profile too.
-    const band = await getArtist(token, override).catch(() => null);
-    // Search without overrides to find the solo profile
+  if (meta?.type === 'band_member') {
+    // Find band profile: use override if available, otherwise search by band name
+    let band = null;
+    if (override) {
+      band = await getArtist(token, override).catch(() => null);
+    }
+    if (!band && meta.bandName) {
+      const bandResults = await searchArtist(token, meta.bandName, spotifyOverrides).catch(() => []);
+      band = bandResults?.[0] || null;
+    }
+
+    // Find solo profile: search without overrides
     const soloResults = await searchArtist(token, coachName, null).catch(() => []);
-    const solo = soloResults?.[0] && soloResults[0].id !== override ? soloResults[0] : null;
+    const solo = soloResults?.[0] && soloResults[0].id !== band?.id ? soloResults[0] : null;
 
     const bandFollowers = band?.followers?.total || 0;
     const soloFollowers = solo?.followers?.total || 0;
 
     // Auto-decide blend: if band has 10x+ more followers, mostly band
-    let autoBlend = 100; // 100 = all band
-    if (solo && soloFollowers > 0) {
+    let autoBlend = band ? 75 : 0; // default to 75% band if found
+    if (solo && band && soloFollowers > 0) {
       const ratio = bandFollowers / Math.max(soloFollowers, 1);
       if (ratio > 20) autoBlend = 90;
       else if (ratio > 5) autoBlend = 75;
@@ -48,7 +56,7 @@ async function resolveCoachArtists(token, coachName) {
       bandFollowers,
       soloFollowers,
       autoBlend,
-      blend: autoBlend, // user can override
+      blend: autoBlend,
     };
   }
 
