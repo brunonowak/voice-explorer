@@ -34,9 +34,9 @@ const coachMeta = getMergedCoachMeta();
 const artistCache = new Map();
 
 function CoachExplorer({ token, userId }) {
-  const [mode, setMode] = useState('single'); // 'single' or 'clash'
+  const [mode, setMode] = useState('single'); // 'single' or 'collab'
   const [countryCode, setCountryCode] = useState('US');
-  const [clashCountries, setClashCountries] = useState(new Set());
+  const [collabCountries, setCollabCountries] = useState(new Set());
   const [selectedCoaches, setSelectedCoaches] = useState(new Set());
   const [seasonRange, setSeasonRange] = useState([1, 1]);
   const [showPlaylistBuilder, setShowPlaylistBuilder] = useState(false);
@@ -61,7 +61,7 @@ function CoachExplorer({ token, userId }) {
   useEffect(() => {
     setSelectedCoaches(new Set());
     if (mode === 'single') {
-      setClashCountries(new Set());
+      setCollabCountries(new Set());
     }
   }, [mode]);
 
@@ -89,8 +89,8 @@ function CoachExplorer({ token, userId }) {
         });
       });
     } else {
-      // Clash mode: merge all coaches from selected countries
-      clashCountries.forEach(code => {
+      // Collab mode: merge all coaches from selected countries
+      collabCountries.forEach(code => {
         const c = allData[code];
         c.seasons.forEach(s => {
           s.coaches.forEach(name => {
@@ -113,13 +113,13 @@ function CoachExplorer({ token, userId }) {
         countries: Array.from(c.countries),
       }))
       .sort((a, b) => {
-        // In clash mode, sort by number of countries first (globetrotters first)
-        if (mode === 'clash' && b.countries.length !== a.countries.length) {
+        // In collab mode, sort by number of countries first (globetrotters first)
+        if (mode === 'collab' && b.countries.length !== a.countries.length) {
           return b.countries.length - a.countries.length;
         }
         return b.seasons.length - a.seasons.length;
       });
-  }, [mode, filteredSeasons, clashCountries, countryCode]);
+  }, [mode, filteredSeasons, collabCountries, countryCode]);
 
   // Fetch artist photos for visible coaches (parallel, batched, with retry)
   const fetchPhotos = useCallback(async () => {
@@ -177,8 +177,8 @@ function CoachExplorer({ token, userId }) {
     });
   };
 
-  const toggleClashCountry = (code) => {
-    setClashCountries(prev => {
+  const toggleCollabCountry = (code) => {
+    setCollabCountries(prev => {
       const next = new Set(prev);
       if (next.has(code)) next.delete(code);
       else next.add(code);
@@ -190,8 +190,8 @@ function CoachExplorer({ token, userId }) {
   const selectAll = () => setSelectedCoaches(new Set(allCoaches.map(c => c.name)));
   const clearAll = () => setSelectedCoaches(new Set());
 
-  const playlistCountryName = mode === 'clash'
-    ? Array.from(clashCountries).map(c => allData[c].name).join(' vs ')
+  const playlistCountryName = mode === 'collab'
+    ? Array.from(collabCountries).map(c => allData[c].name).join(' vs ')
     : country.name;
 
   return (
@@ -203,14 +203,14 @@ function CoachExplorer({ token, userId }) {
           onClick={() => setMode('single')}
         >🌍 Single Country</button>
         <button
-          className={`mode-btn ${mode === 'clash' ? 'active' : ''}`}
-          onClick={() => setMode('clash')}
-        >⚔️ Country Clash</button>
+          className={`mode-btn ${mode === 'collab' ? 'active' : ''}`}
+          onClick={() => setMode('collab')}
+        >🤝 Country Collab</button>
       </div>
 
       {/* Country selection */}
       <section className="country-section">
-        <h2>{mode === 'clash' ? 'Pick Countries to Clash' : 'Choose a Country'}</h2>
+        <h2>{mode === 'collab' ? 'Pick Countries to Collab' : 'Choose a Country'}</h2>
         {countryRegions.map(region => (
           <div key={region.label} className="region-group">
             <h3 className="region-label">{region.label}</h3>
@@ -219,12 +219,12 @@ function CoachExplorer({ token, userId }) {
                 const c = allData[code];
                 const isActive = mode === 'single'
                   ? countryCode === code
-                  : clashCountries.has(code);
+                  : collabCountries.has(code);
                 return (
                   <button
                     key={code}
                     className={`country-btn ${isActive ? 'active' : ''}`}
-                    onClick={() => mode === 'single' ? setCountryCode(code) : toggleClashCountry(code)}
+                    onClick={() => mode === 'single' ? setCountryCode(code) : toggleCollabCountry(code)}
                     title={`${c.name} — ${c.seasons.length} seasons`}
                   >
                     <span className="country-flag">{c.flag}</span>
@@ -241,14 +241,14 @@ function CoachExplorer({ token, userId }) {
         {mode === 'single' && (
           <p className="country-subtitle">{country.name} — {seasons.length} seasons</p>
         )}
-        {mode === 'clash' && clashCountries.size > 0 && (
+        {mode === 'collab' && collabCountries.size > 0 && (
           <p className="country-subtitle">
-            {Array.from(clashCountries).map(c => `${allData[c].flag} ${allData[c].name}`).join('  vs  ')}
+            {Array.from(collabCountries).map(c => `${allData[c].flag} ${allData[c].name}`).join('  +  ')}
             {' — '}{allCoaches.length} coaches
           </p>
         )}
-        {mode === 'clash' && clashCountries.size === 0 && (
-          <p className="country-subtitle">Select 2 or more countries to clash their coaches</p>
+        {mode === 'collab' && collabCountries.size === 0 && (
+          <p className="country-subtitle">Select 2 or more countries to collab their coaches</p>
         )}
       </section>
 
@@ -280,7 +280,7 @@ function CoachExplorer({ token, userId }) {
       {mode === 'single' && showTimeline && <CoachTimeline seasons={filteredSeasons} />}
 
       {/* Coaches grid */}
-      {(mode === 'single' || clashCountries.size > 0) && (
+      {(mode === 'single' || collabCountries.size > 0) && (
         <section className="coaches">
           <div className="coaches-header">
             <h2>Coaches ({allCoaches.length})</h2>
@@ -320,7 +320,7 @@ function CoachExplorer({ token, userId }) {
                     )}
                     <span className="coach-detail">
                       {coach.seasons.length} season{coach.seasons.length > 1 ? 's' : ''}
-                      {mode === 'clash' && coach.countries.length > 1
+                      {mode === 'collab' && coach.countries.length > 1
                         && ` · ${coach.countries.map(c => allData[c].flag).join('')}`
                       }
                     </span>
