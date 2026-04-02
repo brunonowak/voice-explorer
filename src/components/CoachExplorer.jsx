@@ -4,7 +4,8 @@ import PlaylistBuilder from './PlaylistBuilder';
 import CoachTimeline from './CoachTimeline';
 import CoachDetail from './CoachDetail';
 import { getMergedOverrides } from './ArtistFixer';
-import { searchArtist } from '../spotify/api';
+import { searchArtist as spotifySearchArtist } from '../spotify/api';
+import { searchArtist as ytSearchArtist } from '../youtube/api';
 
 const jsonOverrides = allData.spotifyOverrides || {};
 const jsonCoachMeta = allData.coachMeta || {};
@@ -33,7 +34,7 @@ const coachMeta = getMergedCoachMeta();
 // Global cache so we don't re-fetch across country switches
 const artistCache = new Map();
 
-function CoachExplorer({ token, userId }) {
+function CoachExplorer({ token, userId, platform }) {
   const [mode, setMode] = useState('single'); // 'single' or 'collab'
   const [countryCode, setCountryCode] = useState('US');
   const [collabCountries, setCollabCountries] = useState(new Set());
@@ -140,10 +141,17 @@ function CoachExplorer({ token, userId }) {
 
     const fetchOne = async (name, attempt = 0) => {
       try {
-        const artists = await searchArtist(token, name, spotifyOverrides);
-        const withImg = artists.find(a => a.images?.length > 0);
-        const img = withImg?.images?.[1]?.url || withImg?.images?.[0]?.url || null;
-        artistCache.set(name, img);
+        if (platform === 'youtube') {
+          const ytOverrides = allData.youtubeOverrides || {};
+          const channels = await ytSearchArtist(token, name, ytOverrides);
+          const img = channels?.[0]?.image || null;
+          artistCache.set(name, img);
+        } else {
+          const artists = await spotifySearchArtist(token, name, spotifyOverrides);
+          const withImg = artists.find(a => a.images?.length > 0);
+          const img = withImg?.images?.[1]?.url || withImg?.images?.[0]?.url || null;
+          artistCache.set(name, img);
+        }
       } catch (err) {
         if (attempt < 1) {
           await new Promise(r => setTimeout(r, 1500));
@@ -164,7 +172,7 @@ function CoachExplorer({ token, userId }) {
       });
       setArtistPhotos(photos);
     }
-  }, [token, allCoaches, spotifyOverrides]);
+  }, [token, allCoaches, spotifyOverrides, platform]);
 
   useEffect(() => { fetchPhotos(); }, [fetchPhotos]);
 
@@ -361,6 +369,7 @@ function CoachExplorer({ token, userId }) {
           userId={userId}
           coaches={Array.from(selectedCoaches)}
           countryName={playlistCountryName}
+          platform={platform}
           onClose={() => setShowPlaylistBuilder(false)}
         />
       )}

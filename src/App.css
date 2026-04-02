@@ -579,6 +579,55 @@ body {
 
 .spotify-link:hover { background: var(--spotify-green-hover); }
 
+.yt-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.7rem 1.5rem;
+  background: var(--yt-red);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.yt-link:hover { background: var(--yt-red-hover); }
+
+.alt-link {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.alt-link:hover { color: var(--text); }
+
+.yt-mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.yt-mode-btn {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.yt-mode-btn.active {
+  border-color: var(--yt-red);
+  color: var(--text);
+  background: rgba(255, 0, 0, 0.1);
+}
+
 /* Error */
 .playlist-error { text-align: center; padding: 1rem 0; }
 .playlist-error h3 { color: #e74c3c; margin-bottom: 1rem; }

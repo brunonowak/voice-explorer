@@ -2,42 +2,71 @@ import { useState, useEffect } from 'react';
 import allData from '../data/coaches.json';
 import { getMergedOverrides } from './ArtistFixer';
 import {
-  searchArtist,
-  getArtist,
+  searchArtist as spotifySearchArtist,
+  getArtist as spotifyGetArtist,
   getArtistTopTracks,
   getArtistExpandedTracks,
-  createPlaylist,
+  createPlaylist as spotifyCreatePlaylist,
   addTracksToPlaylist,
 } from '../spotify/api';
+import {
+  searchArtist as ytSearchArtist,
+  getArtistTopVideos,
+  getArtistExpandedVideos,
+  createPlaylist as ytCreatePlaylist,
+  addVideosToPlaylist,
+} from '../youtube/api';
 
 const spotifyOverrides = getMergedOverrides(allData.spotifyOverrides || {});
+const youtubeOverrides = allData.youtubeOverrides || {};
 const coachMeta = allData.coachMeta || {};
 
 // For band_member coaches, figure out the solo vs band situation
-async function resolveCoachArtists(token, coachName) {
+async function resolveCoachArtists(token, coachName, platform) {
   const meta = coachMeta[coachName];
+
+  if (platform === 'youtube') {
+    // YouTube: search by name, get channel info
+    if (meta?.type === 'band_member') {
+      const bandResults = meta.bandName
+        ? await ytSearchArtist(token, meta.bandName, youtubeOverrides).catch(() => [])
+        : [];
+      const band = bandResults?.[0] || null;
+      const soloResults = await ytSearchArtist(token, coachName, null).catch(() => []);
+      const solo = soloResults?.[0] && soloResults[0].id !== band?.id ? soloResults[0] : null;
+      return {
+        type: 'band_member', coachName, band, solo,
+        bandName: meta.bandName || band?.name || coachName,
+        bandFollowers: band?.subscribers || 0,
+        soloFollowers: solo?.subscribers || 0,
+        autoBlend: band ? 75 : 0,
+        blend: band ? 75 : 0,
+      };
+    }
+    const artists = await ytSearchArtist(token, coachName, youtubeOverrides);
+    return { type: 'solo', coachName, artist: artists?.[0] || null, band: null, solo: null };
+  }
+
+  // Spotify path (unchanged)
   const override = spotifyOverrides[coachName];
 
   if (meta?.type === 'band_member') {
-    // Find band profile: use override if available, otherwise search by band name
     let band = null;
     if (override) {
-      band = await getArtist(token, override).catch(() => null);
+      band = await spotifyGetArtist(token, override).catch(() => null);
     }
     if (!band && meta.bandName) {
-      const bandResults = await searchArtist(token, meta.bandName, spotifyOverrides).catch(() => []);
+      const bandResults = await spotifySearchArtist(token, meta.bandName, spotifyOverrides).catch(() => []);
       band = bandResults?.[0] || null;
     }
 
-    // Find solo profile: search without overrides
-    const soloResults = await searchArtist(token, coachName, null).catch(() => []);
+    const soloResults = await spotifySearchArtist(token, coachName, null).catch(() => []);
     const solo = soloResults?.[0] && soloResults[0].id !== band?.id ? soloResults[0] : null;
 
     const bandFollowers = band?.followers?.total || 0;
     const soloFollowers = solo?.followers?.total || 0;
 
-    // Auto-decide blend: if band has 10x+ more followers, mostly band
-    let autoBlend = band ? 75 : 0; // default to 75% band if found
+    let autoBlend = band ? 75 : 0;
     if (solo && band && soloFollowers > 0) {
       const ratio = bandFollowers / Math.max(soloFollowers, 1);
       if (ratio > 20) autoBlend = 90;
@@ -48,28 +77,14 @@ async function resolveCoachArtists(token, coachName) {
     }
 
     return {
-      type: 'band_member',
-      coachName,
-      band,
-      solo,
+      type: 'band_member', coachName, band, solo,
       bandName: meta.bandName || band?.name || coachName,
-      bandFollowers,
-      soloFollowers,
-      autoBlend,
-      blend: autoBlend,
+      bandFollowers, soloFollowers, autoBlend, blend: autoBlend,
     };
   }
 
-  // Regular coach — just search normally
-  const artists = await searchArtist(token, coachName, spotifyOverrides);
-  const artist = artists?.[0] || null;
-  return {
-    type: 'solo',
-    coachName,
-    artist,
-    band: null,
-    solo: null,
-  };
+  const artists = await spotifySearchArtist(token, coachName, spotifyOverrides);
+  return { type: 'solo', coachName, artist: artists?.[0] || null, band: null, solo: null };
 }
 
 function selectTracks(tracks, artistId, { tracksPerCoach, soloOnly, mixType }) {
@@ -117,6 +132,51 @@ function selectTracks(tracks, artistId, { tracksPerCoach, soloOnly, mixType }) {
   return result.slice(0, tracksPerCoach);
 }
 
+// YouTube equivalent: select videos by view count
+function selectVideos(videos, channelId, { tracksPerCoach, mixType }) {
+  let pool = [...videos];
+
+  // Filter to videos from the correct channel when possible
+  if (channelId) {
+    const channelPool = pool.filter(v => v.channelId === channelId);
+    if (channelPool.length >= tracksPerCoach) pool = channelPool;
+  }
+
+  if (pool.length === 0) return [];
+
+  if (mixType === 'top-hits') {
+    pool.sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
+    return pool.slice(0, tracksPerCoach);
+  }
+
+  if (mixType === 'deep-cuts') {
+    pool.sort((a, b) => (a.viewCount ?? 0) - (b.viewCount ?? 0));
+    return pool.slice(0, tracksPerCoach);
+  }
+
+  // Balanced: mix of high/mid/low view counts
+  pool.sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
+  const third = Math.max(1, Math.ceil(tracksPerCoach / 3));
+  const top = pool.slice(0, third);
+  const mid = pool.slice(Math.floor(pool.length * 0.3), Math.floor(pool.length * 0.3) + third);
+  const deep = pool.slice(-third);
+
+  const seen = new Set();
+  const result = [];
+  for (const v of [...top, ...mid, ...deep]) {
+    if (!seen.has(v.id)) { seen.add(v.id); result.push(v); }
+  }
+
+  if (result.length < tracksPerCoach) {
+    for (const v of pool) {
+      if (!seen.has(v.id)) { seen.add(v.id); result.push(v); }
+      if (result.length >= tracksPerCoach) break;
+    }
+  }
+
+  return result.slice(0, tracksPerCoach);
+}
+
 const MIX_OPTIONS = [
   { value: 'top-hits',  emoji: '🔥', label: 'Top Hits',  desc: 'Most popular tracks' },
   { value: 'balanced',  emoji: '🎵', label: 'Balanced',  desc: 'Mix of hits + deep cuts' },
@@ -133,7 +193,7 @@ function buildDefaultName(coaches, countryName) {
   return `${today} — ${FOLDER_PREFIX} — ${countryName} — ${coachLabel}`;
 }
 
-function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
+function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platform }) {
   const [playlistName, setPlaylistName] = useState(() => buildDefaultName(coaches, countryName));
   const [trackMode, setTrackMode] = useState('per-coach');
   const [tracksPerCoach, setTracksPerCoach] = useState(5);
@@ -141,13 +201,16 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
   const [isPublic, setIsPublic] = useState(false);
   const [soloOnly, setSoloOnly] = useState(true);
   const [mixType, setMixType] = useState('balanced');
-  const [trackOrder, setTrackOrder] = useState('grouped'); // 'grouped' or 'interleaved'
+  const [trackOrder, setTrackOrder] = useState('grouped');
+  const [ytMode, setYtMode] = useState('music'); // 'music' or 'video' — YouTube only
   const [status, setStatus] = useState('idle');
   const [progress, setProgress] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const [coachArtists, setCoachArtists] = useState(null); // resolved artist info
+  const [coachArtists, setCoachArtists] = useState(null);
   const [resolving, setResolving] = useState(false);
+
+  const isYouTube = platform === 'youtube';
 
   const effectivePerCoach = trackMode === 'total'
     ? Math.max(1, Math.ceil(totalTracks / coaches.length))
@@ -168,7 +231,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
       const resolved = {};
       for (const name of coaches) {
         if (coachMeta[name]?.type === 'band_member') {
-          resolved[name] = await resolveCoachArtists(token, name);
+          resolved[name] = await resolveCoachArtists(token, name, platform);
         }
       }
       if (!cancelled) {
@@ -177,7 +240,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [token, coaches, hasBandMembers]);
+  }, [token, coaches, hasBandMembers, platform]);
 
   const updateBlend = (coachName, blend) => {
     setCoachArtists(prev => ({
@@ -191,102 +254,158 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
     setError(null);
 
     try {
-      const trackBuckets = []; // array of { artist, tracks[] }
+      const trackBuckets = [];
       const skipped = [];
 
-      for (const coachName of coaches) {
-        const resolved = coachArtists?.[coachName];
+      if (isYouTube) {
+        // ── YouTube flow ──
+        for (const coachName of coaches) {
+          const resolved = coachArtists?.[coachName];
+          const searchSuffix = ytMode === 'music' ? ' official audio' : ' official music video';
 
-        if (resolved?.type === 'band_member' && resolved.band) {
-          // Blended fetch
-          const blend = resolved.blend; // 0=all solo, 100=all band
-          const bandCount = Math.round(effectivePerCoach * (blend / 100));
-          const soloCount = effectivePerCoach - bandCount;
+          if (resolved?.type === 'band_member' && resolved.band) {
+            const blend = resolved.blend;
+            const bandCount = Math.round(effectivePerCoach * (blend / 100));
+            const soloCount = effectivePerCoach - bandCount;
 
-          setProgress(`Loading ${resolved.bandName} tracks...`);
+            let bandVideos = [];
+            if (bandCount > 0 && resolved.band.id) {
+              setProgress(`Loading ${resolved.bandName} videos...`);
+              bandVideos = needsExpanded
+                ? await getArtistExpandedVideos(token, resolved.band.id, resolved.bandName + searchSuffix)
+                : await getArtistTopVideos(token, resolved.band.id, bandCount + 5);
+              bandVideos = selectVideos(bandVideos, resolved.band.id, { tracksPerCoach: bandCount, mixType });
+            }
 
-          // Band tracks
-          let bandTracks = [];
-          if (bandCount > 0) {
-            bandTracks = needsExpanded
-              ? await getArtistExpandedTracks(token, resolved.band.id)
-              : await getArtistTopTracks(token, resolved.band.id);
-            bandTracks = selectTracks(bandTracks, resolved.band.id, {
-              tracksPerCoach: bandCount, soloOnly, mixType,
+            let soloVideos = [];
+            if (soloCount > 0 && resolved.solo?.id) {
+              setProgress(`Loading ${coachName} solo videos...`);
+              soloVideos = needsExpanded
+                ? await getArtistExpandedVideos(token, resolved.solo.id, coachName + searchSuffix)
+                : await getArtistTopVideos(token, resolved.solo.id, soloCount + 5);
+              soloVideos = selectVideos(soloVideos, resolved.solo.id, { tracksPerCoach: soloCount, mixType });
+            }
+
+            const combined = [...bandVideos, ...soloVideos];
+            if (combined.length === 0) { skipped.push(coachName); continue; }
+
+            trackBuckets.push({
+              artist: coachName,
+              tracks: combined.map(v => ({
+                id: v.id,
+                name: v.title,
+                artist: v.channelTitle || resolved.bandName,
+                viewCount: v.viewCount || 0,
+                thumbnail: v.thumbnail,
+              })),
             });
-          }
+          } else {
+            setProgress(`Searching for ${coachName}...`);
+            const channels = await ytSearchArtist(token, coachName, youtubeOverrides);
+            if (!channels.length) { skipped.push(coachName); continue; }
 
-          // Solo tracks
-          let soloTracks = [];
-          if (soloCount > 0 && resolved.solo) {
-            setProgress(`Loading ${coachName} solo tracks...`);
-            soloTracks = needsExpanded
-              ? await getArtistExpandedTracks(token, resolved.solo.id)
-              : await getArtistTopTracks(token, resolved.solo.id);
-            soloTracks = selectTracks(soloTracks, resolved.solo.id, {
-              tracksPerCoach: soloCount, soloOnly, mixType,
-            });
-          }
-
-          const combined = [...bandTracks, ...soloTracks];
-          if (combined.length === 0) {
-            skipped.push(coachName);
-            continue;
-          }
-
-          trackBuckets.push({
-            artist: coachName,
-            tracks: combined.map(t => ({
-              uri: t.uri,
-              name: t.name,
-              artist: t.artists?.[0]?.name || resolved.bandName,
-              album: t.album?.name ?? '',
-              popularity: t.popularity ?? 0,
-            })),
-          });
-        } else {
-          // Regular coach
-          setProgress(`Searching for ${coachName}...`);
-          const artists = await searchArtist(token, coachName, spotifyOverrides);
-
-          if (artists.length === 0) {
-            skipped.push(coachName);
-            continue;
-          }
-
-          const artist = artists[0];
-
-          setProgress(
-            needsExpanded
+            const channel = channels[0];
+            setProgress(needsExpanded
               ? `Loading discography for ${coachName}...`
-              : `Getting top tracks for ${coachName}...`
-          );
+              : `Getting top videos for ${coachName}...`);
 
-          const tracks = needsExpanded
-            ? await getArtistExpandedTracks(token, artist.id)
-            : await getArtistTopTracks(token, artist.id);
+            const videos = needsExpanded
+              ? await getArtistExpandedVideos(token, channel.id, coachName + searchSuffix)
+              : await getArtistTopVideos(token, channel.id, effectivePerCoach + 5);
 
-          const selected = selectTracks(tracks, artist.id, {
-            tracksPerCoach: effectivePerCoach, soloOnly, mixType,
-          });
+            const selected = selectVideos(videos, channel.id, { tracksPerCoach: effectivePerCoach, mixType });
 
-          trackBuckets.push({
-            artist: artist.name,
-            tracks: selected.map(t => ({
-              uri: t.uri,
-              name: t.name,
+            trackBuckets.push({
+              artist: channel.name || coachName,
+              tracks: selected.map(v => ({
+                id: v.id,
+                name: v.title,
+                artist: v.channelTitle || channel.name,
+                viewCount: v.viewCount || 0,
+                thumbnail: v.thumbnail,
+              })),
+            });
+          }
+        }
+      } else {
+        // ── Spotify flow (unchanged) ──
+        for (const coachName of coaches) {
+          const resolved = coachArtists?.[coachName];
+
+          if (resolved?.type === 'band_member' && resolved.band) {
+            const blend = resolved.blend;
+            const bandCount = Math.round(effectivePerCoach * (blend / 100));
+            const soloCount = effectivePerCoach - bandCount;
+
+            setProgress(`Loading ${resolved.bandName} tracks...`);
+
+            let bandTracks = [];
+            if (bandCount > 0) {
+              bandTracks = needsExpanded
+                ? await getArtistExpandedTracks(token, resolved.band.id)
+                : await getArtistTopTracks(token, resolved.band.id);
+              bandTracks = selectTracks(bandTracks, resolved.band.id, {
+                tracksPerCoach: bandCount, soloOnly, mixType,
+              });
+            }
+
+            let soloTracks = [];
+            if (soloCount > 0 && resolved.solo) {
+              setProgress(`Loading ${coachName} solo tracks...`);
+              soloTracks = needsExpanded
+                ? await getArtistExpandedTracks(token, resolved.solo.id)
+                : await getArtistTopTracks(token, resolved.solo.id);
+              soloTracks = selectTracks(soloTracks, resolved.solo.id, {
+                tracksPerCoach: soloCount, soloOnly, mixType,
+              });
+            }
+
+            const combined = [...bandTracks, ...soloTracks];
+            if (combined.length === 0) { skipped.push(coachName); continue; }
+
+            trackBuckets.push({
+              artist: coachName,
+              tracks: combined.map(t => ({
+                id: t.id, uri: t.uri, name: t.name,
+                artist: t.artists?.[0]?.name || resolved.bandName,
+                album: t.album?.name ?? '',
+                popularity: t.popularity ?? 0,
+              })),
+            });
+          } else {
+            setProgress(`Searching for ${coachName}...`);
+            const artists = await spotifySearchArtist(token, coachName, spotifyOverrides);
+            if (artists.length === 0) { skipped.push(coachName); continue; }
+
+            const artist = artists[0];
+            setProgress(needsExpanded
+              ? `Loading discography for ${coachName}...`
+              : `Getting top tracks for ${coachName}...`);
+
+            const tracks = needsExpanded
+              ? await getArtistExpandedTracks(token, artist.id)
+              : await getArtistTopTracks(token, artist.id);
+
+            const selected = selectTracks(tracks, artist.id, {
+              tracksPerCoach: effectivePerCoach, soloOnly, mixType,
+            });
+
+            trackBuckets.push({
               artist: artist.name,
-              album: t.album?.name ?? '',
-              popularity: t.popularity ?? 0,
-            })),
-          });
+              tracks: selected.map(t => ({
+                id: t.id, uri: t.uri, name: t.name,
+                artist: artist.name,
+                album: t.album?.name ?? '',
+                popularity: t.popularity ?? 0,
+              })),
+            });
+          }
         }
       }
 
       // Flatten buckets into final track list
       let allTracks;
       if (trackOrder === 'interleaved') {
-        // Round-robin: take 1 track from each artist in turn
         allTracks = [];
         const iters = trackBuckets.map(b => b.tracks[Symbol.iterator]());
         let done = false;
@@ -294,10 +413,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
           done = true;
           for (const it of iters) {
             const next = it.next();
-            if (!next.done) {
-              allTracks.push(next.value);
-              done = false;
-            }
+            if (!next.done) { allTracks.push(next.value); done = false; }
           }
         }
       } else {
@@ -305,7 +421,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
       }
 
       if (allTracks.length === 0) {
-        throw new Error('No tracks found for any selected artist');
+        throw new Error(`No ${isYouTube ? 'videos' : 'tracks'} found for any selected artist`);
       }
 
       if (effectiveTotal && allTracks.length > effectiveTotal) {
@@ -313,23 +429,34 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
       }
 
       setStatus('creating');
-      setProgress(`Creating playlist with ${allTracks.length} tracks...`);
+      setProgress(`Creating playlist with ${allTracks.length} ${isYouTube ? 'songs' : 'tracks'}...`);
 
       const mixLabel = MIX_OPTIONS.find(m => m.value === mixType)?.label ?? '';
-      const playlist = await createPlaylist(
-        token, userId, playlistName,
-        `${mixLabel} mix — ${coaches.join(', ')} · Generated by Coach Playlist Generator`,
-        isPublic
-      );
+      const desc = `${mixLabel} mix — ${coaches.join(', ')} · Generated by Coach Playlist Generator`;
 
-      await addTracksToPlaylist(token, playlist.id, allTracks.map(t => t.uri));
-
-      setResult({
-        playlist,
-        tracks: allTracks,
-        skipped,
-        url: playlist.external_urls.spotify,
-      });
+      if (isYouTube) {
+        const playlist = await ytCreatePlaylist(token, playlistName, desc, isPublic);
+        await addVideosToPlaylist(token, playlist.id, allTracks.map(t => t.id));
+        setResult({
+          playlist,
+          tracks: allTracks,
+          skipped,
+          url: ytMode === 'music' ? playlist.musicUrl : playlist.url,
+          altUrl: ytMode === 'music' ? playlist.url : playlist.musicUrl,
+          primaryLabel: ytMode === 'music' ? 'Open in YouTube Music' : 'Open in YouTube',
+          altLabel: ytMode === 'music' ? 'Also on YouTube' : 'Also on YouTube Music',
+        });
+      } else {
+        const playlist = await spotifyCreatePlaylist(token, userId, playlistName, desc, isPublic);
+        await addTracksToPlaylist(token, playlist.id, allTracks.map(t => t.uri));
+        setResult({
+          playlist,
+          tracks: allTracks,
+          skipped,
+          url: playlist.external_urls.spotify,
+          primaryLabel: 'Open in Spotify',
+        });
+      }
       setStatus('done');
     } catch (err) {
       setError(err.message);
@@ -353,6 +480,28 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
                 onChange={e => setPlaylistName(e.target.value)}
               />
             </label>
+
+            {/* YouTube mode selector */}
+            {isYouTube && (
+              <div className="form-group">
+                <span className="form-label">Playlist Type</span>
+                <div className="yt-mode-toggle">
+                  <button
+                    className={`yt-mode-btn ${ytMode === 'music' ? 'active' : ''}`}
+                    onClick={() => setYtMode('music')}
+                  >🎵 Music Playlist</button>
+                  <button
+                    className={`yt-mode-btn ${ytMode === 'video' ? 'active' : ''}`}
+                    onClick={() => setYtMode('video')}
+                  >🎬 Video Playlist</button>
+                </div>
+                <span className="note">
+                  {ytMode === 'music'
+                    ? 'Audio tracks — best for YouTube Music'
+                    : 'Music videos — best for YouTube'}
+                </span>
+              </div>
+            )}
 
             <div className="form-group">
               <span className="form-label">Playlist Size</span>
@@ -406,14 +555,16 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
               </div>
             </div>
 
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={soloOnly}
-                onChange={e => setSoloOnly(e.target.checked)}
-              />
-              Solo tracks only (no features / collabs)
-            </label>
+            {!isYouTube && (
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={soloOnly}
+                  onChange={e => setSoloOnly(e.target.checked)}
+                />
+                Solo tracks only (no features / collabs)
+              </label>
+            )}
 
             <div className="order-toggle">
               <span className="order-label">Track order</span>
@@ -505,8 +656,8 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
         {status === 'done' && result && (
           <div className="playlist-done">
             <h3>✅ Playlist Created!</h3>
-            <p><strong>{result.playlist.name}</strong></p>
-            <p>{result.tracks.length} tracks added</p>
+            <p><strong>{result.playlist.name || result.playlist.title}</strong></p>
+            <p>{result.tracks.length} {isYouTube ? 'songs' : 'tracks'} added</p>
             {result.skipped.length > 0 && (
               <p className="skipped-note">
                 ⚠️ Could not find: {result.skipped.join(', ')}
@@ -516,10 +667,20 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose }) {
               href={result.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="spotify-link"
+              className={isYouTube ? 'yt-link' : 'spotify-link'}
             >
-              Open in Spotify →
+              {result.primaryLabel} →
             </a>
+            {result.altUrl && (
+              <a
+                href={result.altUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="alt-link"
+              >
+                {result.altLabel} →
+              </a>
+            )}
           </div>
         )}
 
