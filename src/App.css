@@ -7,6 +7,10 @@
   --text-muted: #888;
   --spotify-green: #1DB954;
   --spotify-green-hover: #1ed760;
+  --yt-red: #FF0000;
+  --yt-red-hover: #cc0000;
+  --accent: var(--yt-red);
+  --accent-hover: var(--yt-red-hover);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -83,6 +87,41 @@ body {
 .login-btn:hover {
   background: var(--spotify-green-hover);
   transform: scale(1.05);
+}
+
+.login-btn-google {
+  background: #fff;
+  color: #333;
+}
+
+.login-btn-google:hover {
+  background: #f0f0f0;
+}
+
+.login-hint {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.login-admin-link {
+  display: inline-block;
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.login-admin-link:hover {
+  color: var(--text);
+}
+
+.platform-badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 /* Header */

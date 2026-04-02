@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { getStoredToken, handleCallback, refreshAccessToken, logout } from './spotify/auth';
 import { getCurrentUser } from './spotify/api';
+import { getStoredGoogleToken, handleGoogleCallback, refreshGoogleToken, logoutGoogle } from './youtube/auth';
+import { getMyChannel } from './youtube/api';
 import Login from './components/Login';
 import Header from './components/Header';
 import CoachExplorer from './components/CoachExplorer';
 import CoachVerifier from './components/CoachVerifier';
 
-const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const GH_PAT_KEY = 'voiceExplorer_githubPat';
 const ADMIN_OWNER = 'brunonowak';
 
@@ -88,6 +91,8 @@ function AdminGate({ children }) {
 function App() {
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
+  const [platform, setPlatform] = useState(null); // 'youtube' | 'spotify'
+  const [spotifyToken, setSpotifyToken] = useState(null); // admin-only Spotify token
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const hash = useHashRoute();
@@ -95,8 +100,8 @@ function App() {
 
   useEffect(() => {
     async function init() {
-      if (!CLIENT_ID) {
-        setError('Missing VITE_SPOTIFY_CLIENT_ID. Create a .env file — see .env.example');
+      if (!GOOGLE_CLIENT_ID) {
+        setError('Missing VITE_GOOGLE_CLIENT_ID. Create a .env file with your Google Client ID.');
         setLoading(false);
         return;
       }
@@ -107,16 +112,59 @@ function App() {
         if (params.has('__redirect')) {
           const redirected = new URL(decodeURIComponent(params.get('__redirect')), window.location.origin);
           const redirectParams = new URLSearchParams(redirected.search);
-          // Replace URL cleanly, preserving the OAuth params
           const cleanUrl = window.location.origin + window.location.pathname +
             (redirectParams.toString() ? '?' + redirectParams.toString() : '');
           window.history.replaceState({}, '', cleanUrl);
-          // Re-read params after redirect
           const newParams = new URLSearchParams(window.location.search);
           if (newParams.has('code')) {
-            const tokenData = await handleCallback(CLIENT_ID);
+            const provider = sessionStorage.getItem('oauth_provider');
+            if (provider === 'google') {
+              const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID);
+              if (tokenData) {
+                setToken(tokenData.access_token);
+                setPlatform('youtube');
+                const channel = await getMyChannel(tokenData.access_token);
+                setUser(channel ? { display_name: channel.snippet.title, id: channel.id, image: channel.snippet.thumbnails?.default?.url } : null);
+                setLoading(false);
+                return;
+              }
+            } else {
+              // Spotify callback (admin flow)
+              if (SPOTIFY_CLIENT_ID) {
+                const tokenData = await handleCallback(SPOTIFY_CLIENT_ID);
+                if (tokenData) {
+                  setSpotifyToken(tokenData.access_token);
+                  setToken(tokenData.access_token);
+                  setPlatform('spotify');
+                  const userData = await getCurrentUser(tokenData.access_token);
+                  setUser(userData);
+                  setLoading(false);
+                  return;
+                }
+              }
+            }
+          }
+        }
+
+        // Handle direct OAuth callback
+        if (params.has('code')) {
+          const provider = sessionStorage.getItem('oauth_provider');
+          if (provider === 'google') {
+            const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID);
             if (tokenData) {
               setToken(tokenData.access_token);
+              setPlatform('youtube');
+              const channel = await getMyChannel(tokenData.access_token);
+              setUser(channel ? { display_name: channel.snippet.title, id: channel.id, image: channel.snippet.thumbnails?.default?.url } : null);
+              setLoading(false);
+              return;
+            }
+          } else if (SPOTIFY_CLIENT_ID) {
+            const tokenData = await handleCallback(SPOTIFY_CLIENT_ID);
+            if (tokenData) {
+              setSpotifyToken(tokenData.access_token);
+              setToken(tokenData.access_token);
+              setPlatform('spotify');
               const userData = await getCurrentUser(tokenData.access_token);
               setUser(userData);
               setLoading(false);
@@ -125,31 +173,38 @@ function App() {
           }
         }
 
-        // Handle direct OAuth callback
-        if (params.has('code')) {
-          const tokenData = await handleCallback(CLIENT_ID);
-          if (tokenData) {
-            setToken(tokenData.access_token);
-            const userData = await getCurrentUser(tokenData.access_token);
-            setUser(userData);
-            setLoading(false);
-            return;
-          }
+        // Try stored Google token first (public flow)
+        let googleStored = getStoredGoogleToken();
+        if (!googleStored) {
+          googleStored = await refreshGoogleToken(GOOGLE_CLIENT_ID);
+        }
+        if (googleStored) {
+          setToken(googleStored.access_token);
+          setPlatform('youtube');
+          const channel = await getMyChannel(googleStored.access_token);
+          setUser(channel ? { display_name: channel.snippet.title, id: channel.id, image: channel.snippet.thumbnails?.default?.url } : null);
+          setLoading(false);
+          return;
         }
 
-        // Try stored / refreshed token
-        let stored = getStoredToken();
-        if (!stored) {
-          stored = await refreshAccessToken(CLIENT_ID);
-        }
-        if (stored) {
-          setToken(stored.access_token);
-          const userData = await getCurrentUser(stored.access_token);
-          setUser(userData);
+        // Try stored Spotify token (admin flow)
+        if (SPOTIFY_CLIENT_ID) {
+          let spotifyStored = getStoredToken();
+          if (!spotifyStored) {
+            spotifyStored = await refreshAccessToken(SPOTIFY_CLIENT_ID);
+          }
+          if (spotifyStored) {
+            setSpotifyToken(spotifyStored.access_token);
+            setToken(spotifyStored.access_token);
+            setPlatform('spotify');
+            const userData = await getCurrentUser(spotifyStored.access_token);
+            setUser(userData);
+          }
         }
       } catch (err) {
         console.error('Auth error:', err);
         logout();
+        logoutGoogle();
       }
       setLoading(false);
     }
@@ -157,9 +212,15 @@ function App() {
   }, []);
 
   const handleLogout = () => {
-    logout();
+    if (platform === 'youtube') {
+      logoutGoogle();
+    } else {
+      logout();
+    }
     setToken(null);
+    setSpotifyToken(null);
     setUser(null);
+    setPlatform(null);
   };
 
   if (error) {
@@ -178,18 +239,18 @@ function App() {
   }
 
   if (!token) {
-    return <Login clientId={CLIENT_ID} />;
+    return <Login googleClientId={GOOGLE_CLIENT_ID} spotifyClientId={SPOTIFY_CLIENT_ID} />;
   }
 
   return (
     <div className="app">
-      <Header user={user} onLogout={handleLogout} isAdmin={isAdmin} />
+      <Header user={user} onLogout={handleLogout} isAdmin={isAdmin} platform={platform} />
       {isAdmin ? (
         <AdminGate>
-          <CoachVerifier token={token} onClose={() => { window.location.hash = ''; }} />
+          <CoachVerifier token={spotifyToken || token} onClose={() => { window.location.hash = ''; }} />
         </AdminGate>
       ) : (
-        <CoachExplorer token={token} userId={user?.id} />
+        <CoachExplorer token={token} userId={user?.id} platform={platform} />
       )}
     </div>
   );
