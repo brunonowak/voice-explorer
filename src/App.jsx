@@ -117,7 +117,9 @@ function App() {
           window.history.replaceState({}, '', cleanUrl);
           const newParams = new URLSearchParams(window.location.search);
           if (newParams.has('code')) {
-            const provider = sessionStorage.getItem('oauth_provider');
+            const rdScope = newParams.get('scope') || '';
+            const provider = sessionStorage.getItem('oauth_provider')
+              || (rdScope.includes('googleapis.com') || rdScope.includes('youtube') ? 'google' : 'spotify');
             if (provider === 'google') {
               const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID);
               if (tokenData) {
@@ -148,14 +150,25 @@ function App() {
 
         // Handle direct OAuth callback
         if (params.has('code')) {
-          const provider = sessionStorage.getItem('oauth_provider');
+          // Detect provider: Google includes scope with googleapis.com
+          const scope = params.get('scope') || '';
+          const provider = sessionStorage.getItem('oauth_provider')
+            || (scope.includes('googleapis.com') || scope.includes('youtube') ? 'google' : 'spotify');
+
           if (provider === 'google') {
-            const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID);
-            if (tokenData) {
-              setToken(tokenData.access_token);
-              setPlatform('youtube');
-              const channel = await getMyChannel(tokenData.access_token);
-              setUser(channel ? { display_name: channel.snippet.title, id: channel.id, image: channel.snippet.thumbnails?.default?.url } : null);
+            try {
+              const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID);
+              if (tokenData) {
+                setToken(tokenData.access_token);
+                setPlatform('youtube');
+                const channel = await getMyChannel(tokenData.access_token);
+                setUser(channel ? { display_name: channel.snippet.title, id: channel.id, image: channel.snippet.thumbnails?.default?.url } : null);
+                setLoading(false);
+                return;
+              }
+            } catch (err) {
+              console.error('Google token exchange failed:', err);
+              setError(`Google login failed: ${err.message}`);
               setLoading(false);
               return;
             }
