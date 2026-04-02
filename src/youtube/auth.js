@@ -47,7 +47,7 @@ export async function redirectToGoogle(clientId) {
   window.location.href = `${GOOGLE_AUTH_URL}?${params.toString()}`;
 }
 
-export async function handleGoogleCallback(clientId) {
+export async function handleGoogleCallback(clientId, clientSecret) {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   const error = params.get('error');
@@ -63,6 +63,7 @@ export async function handleGoogleCallback(clientId) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       client_id: clientId,
+      client_secret: clientSecret,
       grant_type: 'authorization_code',
       code,
       redirect_uri: REDIRECT_URI,
@@ -90,7 +91,7 @@ export async function handleGoogleCallback(clientId) {
   return tokenData;
 }
 
-export async function refreshGoogleToken(clientId) {
+export async function refreshGoogleToken(clientId, clientSecret) {
   const stored = JSON.parse(localStorage.getItem('google_token') || 'null');
   if (!stored?.refresh_token) return null;
 
@@ -99,6 +100,7 @@ export async function refreshGoogleToken(clientId) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       client_id: clientId,
+      client_secret: clientSecret,
       grant_type: 'refresh_token',
       refresh_token: stored.refresh_token,
     }),

@@ -10,6 +10,7 @@ import CoachVerifier from './components/CoachVerifier';
 
 const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '444afa8729db4132bc8323cbc80b3535';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '903410397056-vahckgaijopf0hpt4ti9forb5b86v2dh.apps.googleusercontent.com';
+const GOOGLE_CLIENT_SECRET = import.meta.env.VITE_GOOGLE_CLIENT_SECRET || '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';
 const GH_PAT_KEY = 'voiceExplorer_githubPat';
 const ADMIN_OWNER = 'brunonowak';
 
@@ -121,7 +122,7 @@ function App() {
             const provider = sessionStorage.getItem('oauth_provider')
               || (rdScope.includes('googleapis.com') || rdScope.includes('youtube') ? 'google' : 'spotify');
             if (provider === 'google') {
-              const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID);
+              const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
               if (tokenData) {
                 setToken(tokenData.access_token);
                 setPlatform('youtube');
@@ -157,7 +158,7 @@ function App() {
 
           if (provider === 'google') {
             try {
-              const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID);
+              const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
               if (tokenData) {
                 setToken(tokenData.access_token);
                 setPlatform('youtube');
@@ -189,7 +190,7 @@ function App() {
         // Try stored Google token first (public flow)
         let googleStored = getStoredGoogleToken();
         if (!googleStored) {
-          googleStored = await refreshGoogleToken(GOOGLE_CLIENT_ID);
+          googleStored = await refreshGoogleToken(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
         }
         if (googleStored) {
           setToken(googleStored.access_token);
