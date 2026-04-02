@@ -12,6 +12,7 @@ import {
 import {
   searchArtist as ytSearchArtist,
   getArtistTopVideos,
+  searchArtistVideos,
   getArtistExpandedVideos,
   createPlaylist as ytCreatePlaylist,
   addVideosToPlaylist,
@@ -272,7 +273,9 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
               setProgress(`Loading ${resolved.bandName} videos...`);
               bandVideos = needsExpanded
                 ? await getArtistExpandedVideos(token, resolved.band.id, resolved.bandName, ytMode)
-                : await getArtistTopVideos(token, resolved.band.id, bandCount + 5, ytMode);
+                : ytMode === 'video'
+                  ? await searchArtistVideos(token, resolved.bandName, bandCount + 5, ytMode)
+                  : await getArtistTopVideos(token, resolved.band.id, bandCount + 5, ytMode);
               bandVideos = selectVideos(bandVideos, resolved.band.id, { tracksPerCoach: bandCount, mixType });
             }
 
@@ -281,7 +284,9 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
               setProgress(`Loading ${coachName} solo videos...`);
               soloVideos = needsExpanded
                 ? await getArtistExpandedVideos(token, resolved.solo.id, coachName, ytMode)
-                : await getArtistTopVideos(token, resolved.solo.id, soloCount + 5, ytMode);
+                : ytMode === 'video'
+                  ? await searchArtistVideos(token, coachName, soloCount + 5, ytMode)
+                  : await getArtistTopVideos(token, resolved.solo.id, soloCount + 5, ytMode);
               soloVideos = selectVideos(soloVideos, resolved.solo.id, { tracksPerCoach: soloCount, mixType });
             }
 
@@ -310,7 +315,9 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
 
             const videos = needsExpanded
               ? await getArtistExpandedVideos(token, channel.id, coachName, ytMode)
-              : await getArtistTopVideos(token, channel.id, effectivePerCoach + 5, ytMode);
+              : ytMode === 'video'
+                ? await searchArtistVideos(token, coachName, effectivePerCoach + 5, ytMode)
+                : await getArtistTopVideos(token, channel.id, effectivePerCoach + 5, ytMode);
 
             const selected = selectVideos(videos, channel.id, { tracksPerCoach: effectivePerCoach, mixType });
 

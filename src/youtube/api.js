@@ -153,8 +153,18 @@ export async function getVideoDetails(token, videoIds) {
 
 // Get expanded video pool for an artist (top videos + deeper search)
 export async function getArtistExpandedVideos(token, channelId, artistName, mode = 'music') {
-  const topVideos = await getArtistTopVideos(token, channelId, 15, mode);
-  const searchVideos = await searchArtistVideos(token, artistName, 15, mode);
+  let topVideos, searchVideos;
+
+  if (mode === 'video') {
+    // Video mode: name-based search is primary (finds VEVO / official MVs)
+    // Channel-based search secondary (may return audio-only topic tracks)
+    searchVideos = await searchArtistVideos(token, artistName, 20, mode);
+    topVideos = searchVideos.length >= 10 ? [] : await getArtistTopVideos(token, channelId, 15, mode);
+  } else {
+    // Music mode: channel-based search is primary (gets topic audio tracks)
+    topVideos = await getArtistTopVideos(token, channelId, 15, mode);
+    searchVideos = await searchArtistVideos(token, artistName, 15, mode);
+  }
 
   const seen = new Set();
   const all = [];
