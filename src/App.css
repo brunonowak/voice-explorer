@@ -15,9 +15,9 @@
 }
 
 .platform-spotify {
-  --accent: var(--accent);
-  --accent-hover: var(--accent-hover);
-  --accent-bg: var(--accent-bg);
+  --accent: var(--spotify-green);
+  --accent-hover: var(--spotify-green-hover);
+  --accent-bg: rgba(29, 185, 84, 0.1);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
