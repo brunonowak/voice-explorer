@@ -246,7 +246,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
   const [mixType, setMixType] = useState(platform === 'youtube' ? 'fresh-hits' : 'balanced');
   const [coachMixTypes, setCoachMixTypes] = useState({});
   const [trackOrder, setTrackOrder] = useState('grouped');
-  const [ytMode, setYtMode] = useState('music'); // 'music' or 'video' — YouTube only
+  const [ytMode, setYtMode] = useState('video'); // 'video' or 'music' — YouTube only
   const [status, setStatus] = useState('idle');
   const [progress, setProgress] = useState('');
   const [result, setResult] = useState(null);
@@ -543,18 +543,18 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
                 <span className="form-label">Playlist Type</span>
                 <div className="yt-mode-toggle">
                   <button
-                    className={`yt-mode-btn ${ytMode === 'music' ? 'active' : ''}`}
-                    onClick={() => setYtMode('music')}
-                  >🎵 Music Playlist</button>
-                  <button
                     className={`yt-mode-btn ${ytMode === 'video' ? 'active' : ''}`}
                     onClick={() => setYtMode('video')}
                   >🎬 Video Playlist</button>
+                  <button
+                    className={`yt-mode-btn ${ytMode === 'music' ? 'active' : ''}`}
+                    onClick={() => setYtMode('music')}
+                  >🎵 Music Playlist</button>
                 </div>
                 <span className="note">
-                  {ytMode === 'music'
-                    ? 'Audio tracks — best for YouTube Music'
-                    : 'Music videos — best for YouTube'}
+                  {ytMode === 'video'
+                    ? 'Music videos — best for YouTube'
+                    : 'Audio tracks — best for YouTube Music'}
                 </span>
               </div>
             )}
