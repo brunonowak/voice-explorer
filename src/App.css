@@ -687,24 +687,23 @@ body {
 .form-label { font-size: 0.9rem; color: var(--text-muted); }
 
 .mix-options {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  display: flex;
+  gap: 0.4rem;
 }
 
 .mix-option {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.75rem 0.5rem;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
   background: var(--bg);
-  border: 2px solid var(--border);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
   cursor: pointer;
   transition: all 0.2s;
   font-family: inherit;
   color: var(--text);
+  white-space: nowrap;
 }
 
 .mix-option:hover { border-color: var(--text-muted); }
@@ -714,9 +713,9 @@ body {
   background: var(--accent-bg);
 }
 
-.mix-emoji { font-size: 1.3rem; }
-.mix-label { font-size: 0.85rem; font-weight: 600; }
-.mix-desc { font-size: 0.7rem; color: var(--text-muted); text-align: center; }
+.mix-emoji { font-size: 0.9rem; }
+.mix-label { font-size: 0.8rem; font-weight: 600; }
+.mix-desc { display: none; }
 
 .note { font-style: italic; opacity: 0.7; }
 
@@ -1459,7 +1458,8 @@ tr.vr-missing td { background: rgba(231, 76, 60, 0.04); }
   font-size: 0.7rem;
   color: var(--text-muted);
   white-space: nowrap;
-  min-width: 60px;
+  width: 90px;
+  flex-shrink: 0;
 }
 
 .blend-end:last-child {
