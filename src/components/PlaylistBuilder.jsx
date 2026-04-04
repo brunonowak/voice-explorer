@@ -243,7 +243,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
   const [totalTracks, setTotalTracks] = useState(30);
   const [isPublic, setIsPublic] = useState(false);
   const [soloOnly, setSoloOnly] = useState(true);
-  const [mixType, setMixType] = useState(platform === 'youtube' ? 'fresh-hits' : 'balanced');
+  const [mixType, setMixType] = useState('top-hits');
   const [coachMixTypes, setCoachMixTypes] = useState({});
   const [trackOrder, setTrackOrder] = useState('grouped');
   const [ytMode, setYtMode] = useState('video'); // 'video' or 'music' — YouTube only
