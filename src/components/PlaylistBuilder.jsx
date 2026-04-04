@@ -133,17 +133,28 @@ function selectTracks(tracks, artistId, { tracksPerCoach, soloOnly, mixType }) {
   return result.slice(0, tracksPerCoach);
 }
 
-// YouTube equivalent: select videos by view count
-function selectVideos(videos, channelId, { tracksPerCoach, mixType }) {
+// YouTube equivalent: select videos by view count with artist relevance filtering
+function selectVideos(videos, channelId, { tracksPerCoach, mixType, artistName }) {
   let pool = [...videos];
 
-  // Filter to videos from the correct channel when possible
-  if (channelId) {
-    const channelPool = pool.filter(v => v.channelId === channelId);
-    if (channelPool.length >= tracksPerCoach) pool = channelPool;
-  }
-
   if (pool.length === 0) return [];
+
+  // Score each video by relevance to the target artist
+  const nameLC = (artistName || '').toLowerCase();
+  pool = pool.map(v => {
+    let score = 0;
+    if (channelId && v.channelId === channelId) score += 10;
+    if (nameLC && v.channelTitle?.toLowerCase().includes(nameLC)) score += 5;
+    if (nameLC && v.title?.toLowerCase().includes(nameLC)) score += 3;
+    return { ...v, _relevance: score };
+  });
+
+  // Separate into relevant (score > 0) and other videos
+  const relevant = pool.filter(v => v._relevance > 0).sort((a, b) => b._relevance - a._relevance);
+  const other = pool.filter(v => v._relevance === 0);
+
+  // Prefer relevant videos; only fill from others if needed
+  pool = relevant.length >= tracksPerCoach ? relevant : [...relevant, ...other];
 
   if (mixType === 'top-hits') {
     pool.sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
@@ -276,7 +287,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
                 : ytMode === 'video'
                   ? await searchArtistVideos(token, resolved.bandName, bandCount + 5, ytMode)
                   : await getArtistTopVideos(token, resolved.band.id, bandCount + 5, ytMode);
-              bandVideos = selectVideos(bandVideos, resolved.band.id, { tracksPerCoach: bandCount, mixType });
+              bandVideos = selectVideos(bandVideos, resolved.band.id, { tracksPerCoach: bandCount, mixType, artistName: resolved.bandName });
             }
 
             let soloVideos = [];
@@ -287,7 +298,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
                 : ytMode === 'video'
                   ? await searchArtistVideos(token, coachName, soloCount + 5, ytMode)
                   : await getArtistTopVideos(token, resolved.solo.id, soloCount + 5, ytMode);
-              soloVideos = selectVideos(soloVideos, resolved.solo.id, { tracksPerCoach: soloCount, mixType });
+              soloVideos = selectVideos(soloVideos, resolved.solo.id, { tracksPerCoach: soloCount, mixType, artistName: coachName });
             }
 
             const combined = [...bandVideos, ...soloVideos];
@@ -319,7 +330,7 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
                 ? await searchArtistVideos(token, coachName, effectivePerCoach + 5, ytMode)
                 : await getArtistTopVideos(token, channel.id, effectivePerCoach + 5, ytMode);
 
-            const selected = selectVideos(videos, channel.id, { tracksPerCoach: effectivePerCoach, mixType });
+            const selected = selectVideos(videos, channel.id, { tracksPerCoach: effectivePerCoach, mixType, artistName: coachName });
 
             trackBuckets.push({
               artist: channel.name || coachName,
