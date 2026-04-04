@@ -100,6 +100,46 @@ function App() {
   const isAdmin = hash === '#admin';
 
   useEffect(() => {
+    // Helper: set up Google/YouTube session from token data
+    async function activateGoogle(tokenData) {
+      setToken(tokenData.access_token);
+      setPlatform('youtube');
+      const channel = await getMyChannel(tokenData.access_token);
+      setUser(channel ? {
+        display_name: channel.snippet.title,
+        id: channel.id,
+        image: channel.snippet.thumbnails?.default?.url,
+      } : null);
+    }
+
+    // Helper: set up Spotify session from token data
+    async function activateSpotify(tokenData) {
+      setSpotifyToken(tokenData.access_token);
+      setToken(tokenData.access_token);
+      setPlatform('spotify');
+      const userData = await getCurrentUser(tokenData.access_token);
+      setUser(userData);
+    }
+
+    // Helper: detect OAuth provider from URL params
+    function detectProvider(params) {
+      const scope = params.get('scope') || '';
+      return sessionStorage.getItem('oauth_provider')
+        || (scope.includes('googleapis.com') || scope.includes('youtube') ? 'google' : 'spotify');
+    }
+
+    // Helper: handle OAuth callback code
+    async function handleAuthCode(provider) {
+      if (provider === 'google') {
+        const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+        if (tokenData) { await activateGoogle(tokenData); return true; }
+      } else if (SPOTIFY_CLIENT_ID) {
+        const tokenData = await handleCallback(SPOTIFY_CLIENT_ID);
+        if (tokenData) { await activateSpotify(tokenData); return true; }
+      }
+      return false;
+    }
+
     async function init() {
       if (!GOOGLE_CLIENT_ID) {
         setError('Missing VITE_GOOGLE_CLIENT_ID. Create a .env file with your Google Client ID.');
@@ -108,8 +148,9 @@ function App() {
       }
 
       try {
-        // Handle GitHub Pages SPA redirect from 404.html
         const params = new URLSearchParams(window.location.search);
+
+        // Handle GitHub Pages SPA redirect from 404.html
         if (params.has('__redirect')) {
           const redirected = new URL(decodeURIComponent(params.get('__redirect')), window.location.origin);
           const redirectParams = new URLSearchParams(redirected.search);
@@ -118,73 +159,13 @@ function App() {
           window.history.replaceState({}, '', cleanUrl);
           const newParams = new URLSearchParams(window.location.search);
           if (newParams.has('code')) {
-            const rdScope = newParams.get('scope') || '';
-            const provider = sessionStorage.getItem('oauth_provider')
-              || (rdScope.includes('googleapis.com') || rdScope.includes('youtube') ? 'google' : 'spotify');
-            if (provider === 'google') {
-              const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
-              if (tokenData) {
-                setToken(tokenData.access_token);
-                setPlatform('youtube');
-                const channel = await getMyChannel(tokenData.access_token);
-                setUser(channel ? { display_name: channel.snippet.title, id: channel.id, image: channel.snippet.thumbnails?.default?.url } : null);
-                setLoading(false);
-                return;
-              }
-            } else {
-              // Spotify callback (admin flow)
-              if (SPOTIFY_CLIENT_ID) {
-                const tokenData = await handleCallback(SPOTIFY_CLIENT_ID);
-                if (tokenData) {
-                  setSpotifyToken(tokenData.access_token);
-                  setToken(tokenData.access_token);
-                  setPlatform('spotify');
-                  const userData = await getCurrentUser(tokenData.access_token);
-                  setUser(userData);
-                  setLoading(false);
-                  return;
-                }
-              }
-            }
+            if (await handleAuthCode(detectProvider(newParams))) { setLoading(false); return; }
           }
         }
 
         // Handle direct OAuth callback
         if (params.has('code')) {
-          // Detect provider: Google includes scope with googleapis.com
-          const scope = params.get('scope') || '';
-          const provider = sessionStorage.getItem('oauth_provider')
-            || (scope.includes('googleapis.com') || scope.includes('youtube') ? 'google' : 'spotify');
-
-          if (provider === 'google') {
-            try {
-              const tokenData = await handleGoogleCallback(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
-              if (tokenData) {
-                setToken(tokenData.access_token);
-                setPlatform('youtube');
-                const channel = await getMyChannel(tokenData.access_token);
-                setUser(channel ? { display_name: channel.snippet.title, id: channel.id, image: channel.snippet.thumbnails?.default?.url } : null);
-                setLoading(false);
-                return;
-              }
-            } catch (err) {
-              console.error('Google token exchange failed:', err);
-              setError(`Google login failed: ${err.message}`);
-              setLoading(false);
-              return;
-            }
-          } else if (SPOTIFY_CLIENT_ID) {
-            const tokenData = await handleCallback(SPOTIFY_CLIENT_ID);
-            if (tokenData) {
-              setSpotifyToken(tokenData.access_token);
-              setToken(tokenData.access_token);
-              setPlatform('spotify');
-              const userData = await getCurrentUser(tokenData.access_token);
-              setUser(userData);
-              setLoading(false);
-              return;
-            }
-          }
+          if (await handleAuthCode(detectProvider(params))) { setLoading(false); return; }
         }
 
         // Try stored Google token first (public flow)
@@ -193,10 +174,7 @@ function App() {
           googleStored = await refreshGoogleToken(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
         }
         if (googleStored) {
-          setToken(googleStored.access_token);
-          setPlatform('youtube');
-          const channel = await getMyChannel(googleStored.access_token);
-          setUser(channel ? { display_name: channel.snippet.title, id: channel.id, image: channel.snippet.thumbnails?.default?.url } : null);
+          await activateGoogle(googleStored);
           setLoading(false);
           return;
         }
@@ -208,16 +186,11 @@ function App() {
             spotifyStored = await refreshAccessToken(SPOTIFY_CLIENT_ID);
           }
           if (spotifyStored) {
-            setSpotifyToken(spotifyStored.access_token);
-            setToken(spotifyStored.access_token);
-            setPlatform('spotify');
-            const userData = await getCurrentUser(spotifyStored.access_token);
-            setUser(userData);
+            await activateSpotify(spotifyStored);
           }
         }
       } catch (err) {
         console.error('Auth error:', err);
-        // Only clear the failing provider's token, not both
         if (sessionStorage.getItem('oauth_provider') === 'google') {
           logoutGoogle();
         } else {

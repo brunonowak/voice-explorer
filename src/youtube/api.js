@@ -32,9 +32,12 @@ async function fetchYouTube(token, endpoint, options = {}) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(
-      error.error?.message || `YouTube API error: ${response.status}`
-    );
+    const msg = error.error?.message || `YouTube API error: ${response.status}`;
+    // Surface quota exhaustion with a clear, actionable message
+    if (response.status === 403 && msg.toLowerCase().includes('quota')) {
+      throw new Error('YouTube API daily quota exceeded. Quota resets at midnight Pacific Time. Try again tomorrow or use cached results.');
+    }
+    throw new Error(msg);
   }
 
   if (response.status === 204) return null;
