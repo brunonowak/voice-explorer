@@ -379,11 +379,18 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
               ? `Loading discography for ${coachName}...`
               : `Getting top videos for ${coachName}...`);
 
-            const videos = coachMix !== 'top-hits'
-              ? await getArtistExpandedVideos(token, channel.id, coachName, ytMode)
-              : ytMode === 'video'
-                ? await searchArtistVideos(token, coachName, effectivePerCoach + 5, ytMode)
-                : await getArtistTopVideos(token, channel.id, effectivePerCoach + 5, ytMode);
+            let videos;
+            if (coachMix !== 'top-hits') {
+              videos = await getArtistExpandedVideos(token, channel.id, coachName, ytMode);
+            } else if (ytMode === 'video') {
+              // Try name search first, fallback to channel search if nothing found
+              videos = await searchArtistVideos(token, coachName, effectivePerCoach + 5, ytMode);
+              if (videos.length === 0) {
+                videos = await getArtistTopVideos(token, channel.id, effectivePerCoach + 5, ytMode);
+              }
+            } else {
+              videos = await getArtistTopVideos(token, channel.id, effectivePerCoach + 5, ytMode);
+            }
 
             const selected = selectVideos(videos, channel.id, { tracksPerCoach: effectivePerCoach, mixType: coachMix, artistName: coachName });
 
@@ -493,7 +500,11 @@ function PlaylistBuilder({ token, userId, coaches, countryName, onClose, platfor
       }
 
       if (allTracks.length === 0) {
-        throw new Error(`No ${isYouTube ? 'videos' : 'tracks'} found for any selected artist`);
+        throw new Error(
+          skipped.length > 0
+            ? `No ${isYouTube ? 'videos' : 'tracks'} found. Skipped: ${skipped.join(', ')}. Try re-rolling these coaches.`
+            : `No ${isYouTube ? 'videos' : 'tracks'} found for any selected artist`
+        );
       }
 
       if (effectiveTotal && allTracks.length > effectiveTotal) {
